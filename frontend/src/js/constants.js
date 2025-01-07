@@ -1,7 +1,7 @@
-export const API_URL = env.API_URL || "http://localhost:3000"
+export const API_URL = env.API_URL || "https://api.ticketsbot.cloud"
 export const PLACEHOLDER_DOCS_URL = "https://docs.ticketsbot.net/setup/placeholders.html"
 
 export const OAUTH = {
-    clientId: env.CLIENT_ID || "700742994386747404",
+    clientId: env.CLIENT_ID || "1325579039888511056",
     redirectUri: env.REDIRECT_URI || "http://localhost:5000/callback"
 }
