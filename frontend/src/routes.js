@@ -38,18 +38,23 @@ import SelectServers from "./views/premium/SelectServers.svelte";
 
 import LegalLayout from "./layouts/LegalLayout.svelte"
 import PrivacyPolicy from "./views/legal/PrivacyPolicy.svelte"
-import TOS from "./views/legal/TOS.svelte"
+import TermsOfService from "./views/legal/TOS.svelte"
 
 export const routes = [
     {name: '/', component: Index, layout: IndexLayout},
     {name: '404', path: '404', component: Error404, layout: ErrorLayout},
-    {name: "/legal/privacy", component: PrivacyPolicy, layout: LegalLayout },
-    {name: "/legal/tos", component: TOS, layout: LegalLayout },
     {name: '/callback', component: LoginCallback},
     {name: '/login', component: Login},
     {name: '/logout', component: Logout},
     {name: '/error', component: Error, layout: ErrorLayout},
     {name: '/whitelabel', component: Whitelabel, layout: IndexLayout},
+    {
+        name: 'legal',
+        nestedRoutes: [
+            {name: 'privacy', component: PrivacyPolicy, layout: LegalLayout},
+            {name: 'tos', component: TOS, layout: LegalLayout}
+        ]
+    },
     {
         name: 'premium',
         nestedRoutes: [
