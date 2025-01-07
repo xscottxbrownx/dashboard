@@ -52,7 +52,7 @@ export const routes = [
         name: 'legal',
         nestedRoutes: [
             {name: 'privacy', component: PrivacyPolicy, layout: LegalLayout},
-            {name: 'tos', component: TOS, layout: LegalLayout}
+            {name: 'tos', component: TermsOfService, layout: LegalLayout}
         ]
     },
     {
