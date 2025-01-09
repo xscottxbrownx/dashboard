@@ -10,6 +10,6 @@
 
 <script>
     function invite() {
-        window.location.href = `https://invite.ticketsbot.net`;
+        window.location.href = `https://invite.ticketsbot.cloud`;
     }
 </script>

@@ -58,7 +58,7 @@
                            bind:value={data.naming_scheme}
                            placeholder="ticket-%id%"
                            tooltipText="Click here for the full placeholder list"
-                           tooltipLink="https://docs.ticketsbot.net" />
+                           tooltipLink="https://docs.ticketsbot.cloud" />
                 {/if}
             </div>
             <div class="incomplete-row">

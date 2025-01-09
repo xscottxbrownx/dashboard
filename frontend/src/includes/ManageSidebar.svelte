@@ -29,7 +29,7 @@
     <nav class="bottom">
         <hr/>
         <ul class="nav-list">
-            <ManageSidebarLink {currentRoute} title="Documentation" icon="fa-book" href="https://docs.ticketsbot.net" newWindow />
+            <ManageSidebarLink {currentRoute} title="Documentation" icon="fa-book" href="https://docs.ticketsbot.cloud" newWindow />
             <ManageSidebarLink {currentRoute} title="Logout" icon="fa-sign-out-alt" href="/logout" />
         </ul>
     </nav>

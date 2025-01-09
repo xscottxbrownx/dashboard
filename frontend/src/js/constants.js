@@ -1,5 +1,5 @@
 export const API_URL = env.API_URL || "https://api.ticketsbot.cloud"
-export const PLACEHOLDER_DOCS_URL = "https://docs.ticketsbot.net/setup/placeholders.html"
+export const PLACEHOLDER_DOCS_URL = "https://docs.ticketsbot.cloud/setup/placeholders.html"
 
 export const OAUTH = {
     clientId: env.CLIENT_ID || "1325579039888511056",

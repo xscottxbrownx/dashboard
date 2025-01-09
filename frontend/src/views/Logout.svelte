@@ -14,7 +14,7 @@
       }
 
       clearLocalStorage()
-      window.location.href = 'https://ticketsbot.net'
+      window.location.href = 'https://ticketsbot.cloud'
   }
 
   process()
