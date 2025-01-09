@@ -9,6 +9,7 @@ env:
 on:
   push:
     branches: [ "master" ]
+  workflow_dispatch:
 
 jobs:
   publish-image:
@@ -32,20 +33,22 @@ jobs:
 
       - name: Set image name
         run: |
-          echo "IMAGE_NAME=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/${PACKAGE_NAME,,}:${GITHUB_SHA}" >> ${GITHUB_ENV}
+          echo "IMAGE_NAME=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/${PACKAGE_NAME,,}" >> ${GITHUB_ENV}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: ${{ env.IMAGE_NAME }}
+          tags:
+            - ${{ env.IMAGE_NAME }}:latest
+            - ${{ env.IMAGE_NAME }}:${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Log image name
