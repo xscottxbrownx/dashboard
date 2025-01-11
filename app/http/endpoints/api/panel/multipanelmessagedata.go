@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"math"
+
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/utils/types"
 	"github.com/TicketsBot/database"
@@ -9,7 +11,6 @@ import (
 	"github.com/rxdn/gdl/objects/interaction/component"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/utils"
-	"math"
 )
 
 type multiPanelMessageData struct {
@@ -38,7 +39,7 @@ func multiPanelIntoMessageData(panel database.MultiPanel, isPremium bool) multiP
 func (d *multiPanelMessageData) send(ctx *botcontext.BotContext, panels []database.Panel) (uint64, error) {
 	if !d.IsPremium {
 		// TODO: Don't harcode
-		d.Embed.SetFooter("Powered by ticketsbot.cloud", "https://ticketsbot.net/assets/img/logo.png")
+		d.Embed.SetFooter("Powered by ticketsbot.cloud", "https://ticketsbot.cloud/assets/img/logo.png")
 	}
 
 	var components []component.Component
