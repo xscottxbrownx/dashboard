@@ -12,8 +12,8 @@ type CustomEmbed struct {
 	Url          *string        `json:"url" validate:"omitempty,url,max=255"`
 	Colour       Colour         `json:"colour" validate:"gte=0,lte=16777215"`
 	Author       Author         `json:"author" validate:"dive"`
-	ImageUrl     *string        `json:"image_url" validate:"omitempty,url,max=255"`
-	ThumbnailUrl *string        `json:"thumbnail_url" validate:"omitempty,url,max=255"`
+	ImageUrl     *string        `json:"image_url" validate:"omitempty,max=255"`
+	ThumbnailUrl *string        `json:"thumbnail_url" validate:"omitempty,max=255"`
 	Footer       Footer         `json:"footer" validate:"dive"`
 	Timestamp    *DateTimeLocal `json:"timestamp" validate:"omitempty"`
 	Fields       []Field        `json:"fields" validate:"dive,max=25"`

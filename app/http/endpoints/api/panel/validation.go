@@ -4,6 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
+	"time"
+
 	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/app/http/validation"
 	"github.com/TicketsBot/GoPanel/app/http/validation/defaults"
@@ -15,9 +19,6 @@ import (
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/guild"
 	"github.com/rxdn/gdl/objects/interaction/component"
-	"regexp"
-	"strings"
-	"time"
 )
 
 func ApplyPanelDefaults(data *panelBody) {
@@ -171,7 +172,9 @@ var urlRegex = regexp.MustCompile(`^https?://([-a-zA-Z0-9@:%._+~#=]{1,256})\.[a-
 func validateNullableUrl(url *string) validation.ValidationFunc {
 	return func() error {
 		if url != nil && (len(*url) > 255 || !urlRegex.MatchString(*url)) {
-			return validation.NewInvalidInputError("Invalid URL")
+			if *url != "%avatar_url%" {
+				return validation.NewInvalidInputError("Invalid URL")
+			}
 		}
 
 		return nil
