@@ -61,8 +61,8 @@
                 <span slot="title">Blacklist</span>
                 <div slot="body" class="body-wrapper">
                     <div class="row" style="gap: 10px">
-                        <Button icon="fas fa-ban" on:click={() => blacklistUserModal = true}>Blacklist New User</Button>
                         <Button icon="fas fa-ban" on:click={() => blacklistRoleModal = true}>Blacklist New Role</Button>
+                        <Button icon="fas fa-ban" on:click={() => blacklistUserModal = true}>Blacklist New User</Button>
                     </div>
 
                     <hr/>
