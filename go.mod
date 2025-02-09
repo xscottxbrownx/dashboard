@@ -2,8 +2,6 @@ module github.com/TicketsBot/GoPanel
 
 go 1.22.6
 
-replace github.com/TicketsBot-cloud/database => ../database
-
 require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/TicketsBot-cloud/archiverclient v0.0.0-20250206203822-d4f91573ad70
