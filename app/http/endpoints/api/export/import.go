@@ -595,8 +595,12 @@ func ImportHandler(ctx *gin.Context) {
 		// Import tickets
 		for _, ticket := range data.Tickets {
 			if _, ok := ticketIdMap[ticket.Id]; !ok {
-				newPanelId := panelIdMap[*ticket.PanelId]
-				newTicketId, err := dbclient.Client.Tickets.Create(ctx, guildId, ticket.UserId, ticket.IsThread, &newPanelId)
+				var panelId *int
+				if ticket.PanelId != nil {
+					a := panelIdMap[*ticket.PanelId]
+					panelId = &a
+				}
+				newTicketId, err := dbclient.Client.Tickets.Create(ctx, guildId, ticket.UserId, ticket.IsThread, panelId)
 				if err != nil {
 					ctx.JSON(500, utils.ErrorJson(err))
 					return
