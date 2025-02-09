@@ -23,6 +23,9 @@ import (
 )
 
 func ImportHandler(ctx *gin.Context) {
+	ctx.JSON(401, "This endpoint is disabled")
+}
+func Importv2Handler(ctx *gin.Context) {
 	// Parse request body from multipart form
 	queryCtx, cancel := context.WithTimeout(context.Background(), time.Minute*1500)
 	defer cancel()
