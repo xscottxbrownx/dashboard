@@ -431,12 +431,12 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import Support Teams
 		for _, team := range data.SupportTeams {
-			teamId, err := dbclient.Client.SupportTeam.Create(queryCtx, guildId, team.Name)
+			teamId, _ := dbclient.Client.SupportTeam.Create(queryCtx, guildId, team.Name)
 			log.Logger.Info("Imported support team", zap.Uint64("guild", guildId), zap.String("name", team.Name))
-			if err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
-				return
-			}
+			// if err != nil {
+			// 	// ctx.JSON(500, utils.ErrorJson(err))
+			// 	// return
+			// }
 
 			supportTeamIdMap[team.Id] = teamId
 		}
@@ -445,10 +445,8 @@ func ImportHandler(ctx *gin.Context) {
 		log.Logger.Info("Importing support team users", zap.Uint64("guild", guildId))
 		for teamId, users := range data.SupportTeamUsers {
 			for _, user := range users {
-				if err := dbclient.Client.SupportTeamMembers.Add(queryCtx, supportTeamIdMap[teamId], user); err != nil {
-					ctx.JSON(500, utils.ErrorJson(err))
-					return
-				}
+				_ = dbclient.Client.SupportTeamMembers.Add(queryCtx, supportTeamIdMap[teamId], user)
+
 			}
 		}
 
@@ -456,10 +454,7 @@ func ImportHandler(ctx *gin.Context) {
 		log.Logger.Info("Importing support team roles", zap.Uint64("guild", guildId))
 		for teamId, roles := range data.SupportTeamRoles {
 			for _, role := range roles {
-				if err := dbclient.Client.SupportTeamRoles.Add(queryCtx, supportTeamIdMap[teamId], role); err != nil {
-					ctx.JSON(500, utils.ErrorJson(err))
-					return
-				}
+				_ = dbclient.Client.SupportTeamRoles.Add(queryCtx, supportTeamIdMap[teamId], role)
 			}
 		}
 
