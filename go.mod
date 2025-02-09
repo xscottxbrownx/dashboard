@@ -2,9 +2,12 @@ module github.com/TicketsBot/GoPanel
 
 go 1.22.6
 
+// replace github.com/TicketsBot-cloud/database => ../database
+
 require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/TicketsBot-cloud/archiverclient v0.0.0-20250206203822-d4f91573ad70
+	github.com/TicketsBot-cloud/database v0.0.0-20250209183433-92dad7c593f6
 	github.com/TicketsBot/common v0.0.0-20241117150316-ff54c97b45c1
 	github.com/TicketsBot/database v0.0.0-20250205194156-c8239ae6eb4e
 	github.com/TicketsBot/logarchiver v0.0.0-20241012220745-5f3ba17a5138
@@ -24,6 +27,8 @@ require (
 	github.com/jackc/pgconn v1.14.3
 	github.com/jackc/pgtype v1.14.4
 	github.com/jackc/pgx/v4 v4.18.3
+	github.com/joho/godotenv v1.5.1
+	github.com/minio/minio-go/v7 v7.0.85
 	github.com/penglongli/gin-metrics v0.1.10
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
@@ -36,12 +41,6 @@ require (
 )
 
 require github.com/TicketsBot/archiverclient v0.0.0-20241012221057-16a920bfb454 // indirect
-
-require (
-	github.com/TicketsBot-cloud/database v0.0.0-20250209171533-92f4ee4cabc7
-	github.com/joho/godotenv v1.5.1
-	github.com/minio/minio-go/v7 v7.0.85
-)
 
 require (
 	github.com/ClickHouse/ch-go v0.52.1 // indirect

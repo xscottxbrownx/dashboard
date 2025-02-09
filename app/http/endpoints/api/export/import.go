@@ -657,13 +657,12 @@ func ImportHandler(ctx *gin.Context) {
 		ticketsExtrasGroup, _ := errgroup.WithContext(queryCtx)
 
 		ticketsExtrasGroup.Go(func() (err error) {
-			// Import ticket additional members
+			newMembersMap := make(map[int][]uint64)
 			for ticketId, members := range data.TicketAdditionalMembers {
-				for _, member := range members {
-					err = dbclient.Client.TicketMembers.Add(queryCtx, guildId, ticketIdMap[ticketId], member)
-					return
-				}
+				newMembersMap[ticketIdMap[ticketId]] = members
 			}
+			// Remap ticket ids in data.TicketAdditionalMembers
+			err = dbclient.Client2.TicketMembers.ImportBulk(queryCtx, guildId, newMembersMap)
 			return
 		})
 
@@ -690,27 +689,35 @@ func ImportHandler(ctx *gin.Context) {
 			return
 		})
 
-		// Import ticket claims
 		ticketsExtrasGroup.Go(func() (err error) {
-			for _, claim := range data.TicketClaims {
-				err = dbclient.Client.TicketClaims.Set(queryCtx, guildId, ticketIdMap[claim.TicketId], claim.Data)
+			newClaimsMap := make(map[int]uint64)
+			for ticketId, user := range data.TicketClaims {
+				newClaimsMap[ticketIdMap[ticketId]] = user.Data
 			}
+
+			err = dbclient.Client2.TicketClaims.ImportBulk(queryCtx, guildId, newClaimsMap)
 			return
 		})
 
 		// Import ticket ratings
 		ticketsExtrasGroup.Go(func() (err error) {
-			for _, rating := range data.ServiceRatings {
-				err = dbclient.Client.ServiceRatings.Set(queryCtx, guildId, ticketIdMap[rating.TicketId], uint8(rating.Data))
+			newRatingsMap := make(map[int]uint8)
+			for ticketId, rating := range data.ServiceRatings {
+				newRatingsMap[ticketIdMap[ticketId]] = uint8(rating.Data)
 			}
+
+			err = dbclient.Client2.ServiceRatings.ImportBulk(queryCtx, guildId, newRatingsMap)
 			return
 		})
 
 		// Import participants
 		ticketsExtrasGroup.Go(func() (err error) {
+			newParticipantsMap := make(map[int][]uint64)
 			for ticketId, participants := range data.Participants {
-				err = dbclient.Client.Participants.SetBulk(queryCtx, guildId, ticketIdMap[ticketId], participants)
+				newParticipantsMap[ticketIdMap[ticketId]] = participants
 			}
+
+			err = dbclient.Client2.Participants.ImportBulk(queryCtx, guildId, newParticipantsMap)
 			return
 		})
 
