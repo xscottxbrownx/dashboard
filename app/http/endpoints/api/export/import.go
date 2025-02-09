@@ -66,8 +66,8 @@ func ImportHandler(ctx *gin.Context) {
 
 	v := validator.NewValidator(
 		decryptedPublicKey,
-		validator.WithMaxUncompressedSize(250*1024*1024),
-		validator.WithMaxIndividualFileSize(1*1024*1024),
+		validator.WithMaxUncompressedSize(500*1024*1024),
+		validator.WithMaxIndividualFileSize(100*1024*1024),
 	)
 
 	if dataFileExists {
