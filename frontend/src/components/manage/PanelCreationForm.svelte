@@ -147,8 +147,8 @@
             </div>
 
             <div class="row">
-                <Input col2={true} label="Large Image URL" badge="Optional" bind:value={data.image_url} placeholder="https://example.com/image.png" />
-                <Input col2={true} label="Small Image URL" badge="Optional" bind:value={data.thumbnail_url} placeholder="https://example.com/image.png" />
+                <Input col2={true} label="Large Image URL" badge="Optional" bind:value={data.image_url} placeholder="https://example.com/image.png" on:blur={handleImageUrlInput}/>
+                <Input col2={true} label="Small Image URL" badge="Optional" bind:value={data.thumbnail_url} placeholder="https://example.com/image.png"  on:blur={handleImageUrlInput}/>
             </div>
         </div>
     </Collapsible>
@@ -267,6 +267,21 @@
             id: emoji.id,
             name: emoji.name
         };
+    }
+
+    // Function to validate image URL
+    function validateImageUrl(url) {
+        const validExtensions = ['.gif', '.jpg', '.jpeg', '.png', '.webp'];
+        return validExtensions.some(ext => url.endsWith(ext));
+    }
+
+    // Function to handle input validation
+    function handleImageUrlInput(event) {
+        const url = event.target.value;
+        if (url && !validateImageUrl(url)) {
+            alert('Invalid image URL. Please use a URL ending with .gif, .jpg, .jpeg, .png, or .webp');
+            event.target.value = '';
+        }
     }
 
     function updateColour() {
