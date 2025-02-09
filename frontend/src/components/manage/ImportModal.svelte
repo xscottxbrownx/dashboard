@@ -20,12 +20,19 @@
             <input type="file" id="import_transcripts" style="display: block; width: 100%;" accept=".zip" />
           </div>
         </form>
+        {#if queryLoading}
+          <div>
+            <br />
+            <br />
+            <p style="text-align: center;">We are currently loading your data in, please do not navigate away from this page.</p>
+          </div>
+        {/if}
       </div>
 
       <div slot="footer" class="footer-wrapper">
         <Button danger={true} on:click={dispatchClose}>Cancel</Button>
         <div style="">
-          <Button on:click={dispatchConfirm}>Confirm</Button>
+          <Button on:click={dispatchConfirm} disabled={queryLoading}>Confirm</Button>
         </div>
       </div>
     </Card>
@@ -54,6 +61,8 @@
 
     let publicKey = "";
 
+    let queryLoading = false;
+
     const dispatch = createEventDispatcher();
 
     function dispatchClose() {
@@ -79,6 +88,7 @@
           frmData.append('transcripts_file', transcriptFileInput.files[0]);
         }
 
+        queryLoading = true;
         const res = await axios.post(`${API_URL}/api/${guildId}/import`, frmData, {
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -88,6 +98,7 @@
             notifyError(`Failed to import settings: ${res.data.error}`);
             return;
         }
+        queryLoading = false;
 
         dispatchClose();
         notifySuccess('Imported settings successfully');
