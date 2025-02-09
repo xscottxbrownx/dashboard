@@ -10,6 +10,7 @@ import (
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/api/ticket/livechat"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/log"
 	"github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
@@ -28,6 +29,8 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 )
+
+var Logger *zap.Logger
 
 func main() {
 	startPprof()
@@ -71,6 +74,8 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("failed to initialise zap logger: %w", err))
 	}
+
+	log.Logger = logger
 
 	logger.Info("Connecting to database")
 	database.ConnectToDatabase()
