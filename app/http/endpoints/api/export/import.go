@@ -532,7 +532,7 @@ func ImportHandler(ctx *gin.Context) {
 		// Import Panels
 		log.Logger.Info("Importing panels", zap.Uint64("guild", guildId))
 		for _, panel := range data.Panels {
-			if _, ok := panelIdMap[panel.PanelId]; ok {
+			if _, ok := panelIdMap[panel.PanelId]; !ok {
 				if premiumTier < premium.Premium && panelCount > 2 {
 					panel.ForceDisabled = true
 					panel.Disabled = true
