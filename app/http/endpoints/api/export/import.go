@@ -419,10 +419,13 @@ func ImportHandler(ctx *gin.Context) {
 		// Import forms
 		for _, form := range data.Forms {
 			if _, ok := formIdMap[form.Id]; !ok {
+				fmt.Println("Creating form", form.Title)
 				formId, err := dbclient.Client.Forms.Create(ctx, guildId, form.Title, form.CustomId)
 				if err != nil {
 					return
 				}
+
+				fmt.Println("Form ID", form.Id, "New ID", formId)
 
 				formIdMap[form.Id] = formId
 			}
@@ -499,9 +502,7 @@ func ImportHandler(ctx *gin.Context) {
 			}
 
 			if panel.WelcomeMessageEmbed != nil {
-				fmt.Println(*panel.WelcomeMessageEmbed)
 				newEmbedId := embedMap[*panel.WelcomeMessageEmbed]
-				fmt.Println(newEmbedId)
 				panel.WelcomeMessageEmbed = &newEmbedId
 			}
 
