@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/pprof"
+
+	"github.com/TicketsBot-cloud/archiverclient"
 	app "github.com/TicketsBot/GoPanel/app/http"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/api/ticket/livechat"
 	"github.com/TicketsBot/GoPanel/config"
@@ -10,7 +14,6 @@ import (
 	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/archiverclient"
 	"github.com/TicketsBot/common/chatrelay"
 	"github.com/TicketsBot/common/model"
 	"github.com/TicketsBot/common/observability"
@@ -21,8 +24,8 @@ import (
 	"github.com/rxdn/gdl/rest/request"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"net/http"
-	"net/http/pprof"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
