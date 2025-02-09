@@ -38,14 +38,15 @@ require (
 require github.com/TicketsBot/archiverclient v0.0.0-20241012221057-16a920bfb454 // indirect
 
 require (
-	github.com/TicketsBot-cloud/database v0.0.0-20250208194245-9e2890e48b59
+	github.com/TicketsBot-cloud/database v0.0.0-20250209171533-92f4ee4cabc7
 	github.com/joho/godotenv v1.5.1
+	github.com/minio/minio-go/v7 v7.0.85
 )
 
 require (
 	github.com/ClickHouse/ch-go v0.52.1 // indirect
 	github.com/ClickHouse/clickhouse-go/v2 v2.10.0 // indirect
-	github.com/TicketsBot-cloud/common v0.0.0-20250208132851-d5083bb04d98 // indirect
+	github.com/TicketsBot-cloud/common v0.0.0-20250208140430-b5da1dd487b3 // indirect
 	github.com/TicketsBot/analytics-client v0.0.0-20240724103359-30f5dac821e6 // indirect
 	github.com/TicketsBot/ttlcache v1.6.1-0.20200405150101-acc18e37b261 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
@@ -96,7 +97,6 @@ require (
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
-	github.com/minio/minio-go/v7 v7.0.85 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
