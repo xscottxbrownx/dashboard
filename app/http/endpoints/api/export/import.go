@@ -502,39 +502,41 @@ func ImportHandler(ctx *gin.Context) {
 		panelCount := len(existingPanels)
 
 		for _, panel := range data.Panels {
-			if premiumTier < premium.Premium && panelCount > 2 {
-				panel.ForceDisabled = true
-				panel.Disabled = true
+			if _, ok := panelIdMap[panel.PanelId]; ok {
+				if premiumTier < premium.Premium && panelCount > 2 {
+					panel.ForceDisabled = true
+					panel.Disabled = true
+				}
+
+				if panel.FormId != nil {
+					newFormId := formIdMap[*panel.FormId]
+					panel.FormId = &newFormId
+				}
+
+				if panel.ExitSurveyFormId != nil {
+					newFormId := formIdMap[*panel.ExitSurveyFormId]
+					panel.ExitSurveyFormId = &newFormId
+				}
+
+				if panel.WelcomeMessageEmbed != nil {
+					newEmbedId := embedMap[*panel.WelcomeMessageEmbed]
+					panel.WelcomeMessageEmbed = &newEmbedId
+				}
+
+				// TODO: Fix this permanently
+				panel.MessageId = panel.MessageId - 1
+
+				panelId, err := dbclient.Client.Panel.CreateWithTx(queryCtx, panelTx, panel)
+				if err != nil {
+					fmt.Println(err)
+					ctx.JSON(500, utils.ErrorJson(err))
+					return
+				}
+
+				panelIdMap[panel.PanelId] = panelId
+
+				panelCount++
 			}
-
-			if panel.FormId != nil {
-				newFormId := formIdMap[*panel.FormId]
-				panel.FormId = &newFormId
-			}
-
-			if panel.ExitSurveyFormId != nil {
-				newFormId := formIdMap[*panel.ExitSurveyFormId]
-				panel.ExitSurveyFormId = &newFormId
-			}
-
-			if panel.WelcomeMessageEmbed != nil {
-				newEmbedId := embedMap[*panel.WelcomeMessageEmbed]
-				panel.WelcomeMessageEmbed = &newEmbedId
-			}
-
-			// TODO: Fix this permanently
-			panel.MessageId = panel.MessageId - 1
-
-			panelId, err := dbclient.Client.Panel.CreateWithTx(queryCtx, panelTx, panel)
-			if err != nil {
-				fmt.Println(err)
-				ctx.JSON(500, utils.ErrorJson(err))
-				return
-			}
-
-			panelIdMap[panel.PanelId] = panelId
-
-			panelCount++
 		}
 
 		// Import Panel Access Control Rules
