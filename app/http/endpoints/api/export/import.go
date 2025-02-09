@@ -582,8 +582,10 @@ func ImportHandler(ctx *gin.Context) {
 			}
 		}
 
-		newContextMenuPanel := panelIdMap[*data.Settings.ContextMenuPanel]
-		data.Settings.ContextMenuPanel = &newContextMenuPanel
+		if data.Settings.ContextMenuPanel != nil {
+			newContextMenuPanel := panelIdMap[*data.Settings.ContextMenuPanel]
+			data.Settings.ContextMenuPanel = &newContextMenuPanel
+		}
 
 		if err := dbclient.Client.Settings.Set(ctx, guildId, data.Settings); err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
