@@ -431,6 +431,12 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import Support Teams
 		for _, team := range data.SupportTeams {
+			existingTeam, exists, _ := dbclient.Client.SupportTeam.GetByName(queryCtx, guildId, team.Name)
+			if exists {
+				supportTeamIdMap[team.Id] = existingTeam.Id
+				continue
+			}
+
 			teamId, _ := dbclient.Client.SupportTeam.Create(queryCtx, guildId, team.Name)
 			log.Logger.Info("Imported support team", zap.Uint64("guild", guildId), zap.String("name", team.Name))
 			// if err != nil {
@@ -446,7 +452,6 @@ func ImportHandler(ctx *gin.Context) {
 		for teamId, users := range data.SupportTeamUsers {
 			for _, user := range users {
 				_ = dbclient.Client.SupportTeamMembers.Add(queryCtx, supportTeamIdMap[teamId], user)
-
 			}
 		}
 
