@@ -37,13 +37,15 @@ require (
 
 require github.com/TicketsBot/archiverclient v0.0.0-20241012221057-16a920bfb454 // indirect
 
-require github.com/joho/godotenv v1.5.1
+require (
+	github.com/TicketsBot-cloud/database v0.0.0-20250208194245-9e2890e48b59
+	github.com/joho/godotenv v1.5.1
+)
 
 require (
 	github.com/ClickHouse/ch-go v0.52.1 // indirect
 	github.com/ClickHouse/clickhouse-go/v2 v2.10.0 // indirect
 	github.com/TicketsBot-cloud/common v0.0.0-20250208132851-d5083bb04d98 // indirect
-	github.com/TicketsBot-cloud/database v0.0.0-20250208140247-a3ced2089495 // indirect
 	github.com/TicketsBot/analytics-client v0.0.0-20240724103359-30f5dac821e6 // indirect
 	github.com/TicketsBot/ttlcache v1.6.1-0.20200405150101-acc18e37b261 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
