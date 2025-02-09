@@ -96,6 +96,7 @@
         });
         if (res.status !== 200) {
             notifyError(`Failed to import settings: ${res.data.error}`);
+            queryLoading = false;
             return;
         }
         queryLoading = false;
