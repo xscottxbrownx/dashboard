@@ -2,10 +2,14 @@ package utils
 
 import (
 	"fmt"
+
+	"github.com/TicketsBot/GoPanel/log"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func ErrorJson(err error) map[string]any {
+	log.Logger.Error("An error occurred", zap.Error(err))
 	return ErrorStr(err.Error())
 }
 
