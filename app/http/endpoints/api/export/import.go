@@ -620,10 +620,13 @@ func ImportHandler(ctx *gin.Context) {
 					}
 				}
 
-				if err := dbclient.Client.Tickets.SetChannelId(ctx, guildId, newTicketId, *ticket.ChannelId); err != nil {
-					ctx.JSON(500, utils.ErrorJson(err))
-					return
+				if ticket.ChannelId != nil {
+					if err := dbclient.Client.Tickets.SetChannelId(ctx, guildId, newTicketId, *ticket.ChannelId); err != nil {
+						ctx.JSON(500, utils.ErrorJson(err))
+						return
+					}
 				}
+
 				if err := dbclient.Client.Tickets.SetHasTranscript(ctx, guildId, newTicketId, ticket.HasTranscript); err != nil {
 					ctx.JSON(500, utils.ErrorJson(err))
 					return
