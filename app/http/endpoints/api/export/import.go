@@ -477,6 +477,16 @@ func ImportHandler(ctx *gin.Context) {
 			}
 		}
 
+		log.Logger.Info("Importing mapping for forms", zap.Uint64("guild", guildId))
+		for area, m := range map[string]map[int]int{"form": formIdMap} {
+			for sourceId, targetId := range m {
+				if err := dbclient.Client2.ImportMappingTable.Set(queryCtx, guildId, area, sourceId, targetId); err != nil {
+					ctx.JSON(500, utils.ErrorJson(err))
+					return
+				}
+			}
+		}
+
 		// Import form inputs
 		log.Logger.Info("Importing form inputs", zap.Uint64("guild", guildId))
 		for _, input := range data.FormInputs {
@@ -488,6 +498,16 @@ func ImportHandler(ctx *gin.Context) {
 				}
 
 				formInputIdMap[input.Id] = newInputId
+			}
+		}
+
+		log.Logger.Info("Importing mapping for forms inputs", zap.Uint64("guild", guildId))
+		for area, m := range map[string]map[int]int{"form_input": formInputIdMap} {
+			for sourceId, targetId := range m {
+				if err := dbclient.Client2.ImportMappingTable.Set(queryCtx, guildId, area, sourceId, targetId); err != nil {
+					ctx.JSON(500, utils.ErrorJson(err))
+					return
+				}
 			}
 		}
 
@@ -521,12 +541,6 @@ func ImportHandler(ctx *gin.Context) {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
-
-		panelTx, err := dbclient.Client.Panel.Begin(queryCtx)
-		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
-			return
-		}
 		panelCount := len(existingPanels)
 
 		// Import Panels
@@ -556,7 +570,7 @@ func ImportHandler(ctx *gin.Context) {
 				// TODO: Fix this permanently
 				panel.MessageId = panel.MessageId - 1
 
-				panelId, err := dbclient.Client.Panel.CreateWithTx(queryCtx, panelTx, panel)
+				panelId, err := dbclient.Client.Panel.Create(queryCtx, panel)
 				if err != nil {
 					fmt.Println(err)
 					ctx.JSON(500, utils.ErrorJson(err))
@@ -570,10 +584,20 @@ func ImportHandler(ctx *gin.Context) {
 			}
 		}
 
+		log.Logger.Info("Importing mapping for panels", zap.Uint64("guild", guildId))
+		for area, m := range map[string]map[int]int{"panel": panelIdMap} {
+			for sourceId, targetId := range m {
+				if err := dbclient.Client2.ImportMappingTable.Set(queryCtx, guildId, area, sourceId, targetId); err != nil {
+					ctx.JSON(500, utils.ErrorJson(err))
+					return
+				}
+			}
+		}
+
 		// Import Panel Access Control Rules
 		log.Logger.Info("Importing panel access control rules", zap.Uint64("guild", guildId))
 		for panelId, rules := range data.PanelAccessControlRules {
-			if err := dbclient.Client.PanelAccessControlRules.ReplaceWithTx(queryCtx, panelTx, panelIdMap[panelId], rules); err != nil {
+			if err := dbclient.Client.PanelAccessControlRules.Replace(queryCtx, panelIdMap[panelId], rules); err != nil {
 				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
@@ -582,7 +606,7 @@ func ImportHandler(ctx *gin.Context) {
 		// Import Panel Mention User
 		log.Logger.Info("Importing panel mention user", zap.Uint64("guild", guildId))
 		for panelId, shouldMention := range data.PanelMentionUser {
-			if err := dbclient.Client.PanelUserMention.SetWithTx(queryCtx, panelTx, panelIdMap[panelId], shouldMention); err != nil {
+			if err := dbclient.Client.PanelUserMention.Set(queryCtx, panelIdMap[panelId], shouldMention); err != nil {
 				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
@@ -591,7 +615,7 @@ func ImportHandler(ctx *gin.Context) {
 		// Import Panel Role Mentions
 		log.Logger.Info("Importing panel role mentions", zap.Uint64("guild", guildId))
 		for panelId, roles := range data.PanelRoleMentions {
-			if err := dbclient.Client.PanelRoleMentions.ReplaceWithTx(queryCtx, panelTx, panelIdMap[panelId], roles); err != nil {
+			if err := dbclient.Client.PanelRoleMentions.Replace(queryCtx, panelIdMap[panelId], roles); err != nil {
 				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
@@ -605,15 +629,10 @@ func ImportHandler(ctx *gin.Context) {
 				teamsToAdd = append(teamsToAdd, supportTeamIdMap[team])
 			}
 
-			if err := dbclient.Client.PanelTeams.ReplaceWithTx(queryCtx, panelTx, panelIdMap[panelId], teamsToAdd); err != nil {
+			if err := dbclient.Client.PanelTeams.Replace(queryCtx, panelIdMap[panelId], teamsToAdd); err != nil {
 				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
-		}
-
-		if err := panelTx.Commit(queryCtx); err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
-			return
 		}
 
 		// Import Multi panels
@@ -693,6 +712,17 @@ func ImportHandler(ctx *gin.Context) {
 		if err := dbclient.Client2.Tickets.BulkImport(queryCtx, guildId, ticketsToCreate); err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
+		}
+
+		// Update the mapping
+		log.Logger.Info("Importing mapping for tickets", zap.Uint64("guild", guildId))
+		for area, m := range map[string]map[int]int{"ticket": ticketIdMap} {
+			for sourceId, targetId := range m {
+				if err := dbclient.Client2.ImportMappingTable.Set(queryCtx, guildId, area, sourceId, targetId); err != nil {
+					ctx.JSON(500, utils.ErrorJson(err))
+					return
+				}
+			}
 		}
 
 		ticketsExtrasGroup, _ := errgroup.WithContext(queryCtx)
@@ -821,24 +851,6 @@ func ImportHandler(ctx *gin.Context) {
 			return
 		}
 
-	}
-
-	// Imported successfully, update the import mapping
-	newMapping := make(map[string]map[int]int)
-	newMapping["ticket"] = ticketIdMap
-	newMapping["form"] = formIdMap
-	newMapping["form_input"] = formInputIdMap
-	newMapping["panel"] = panelIdMap
-
-	// Update the mapping
-	log.Logger.Info("Importing mapping", zap.Uint64("guild", guildId))
-	for area, m := range newMapping {
-		for sourceId, targetId := range m {
-			if err := dbclient.Client2.ImportMappingTable.Set(queryCtx, guildId, area, sourceId, targetId); err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
-				return
-			}
-		}
 	}
 
 	ctx.JSON(200, utils.SuccessResponse)
