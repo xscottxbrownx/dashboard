@@ -13,6 +13,7 @@ import (
 	"github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/GoPanel/s3"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/chatrelay"
 	"github.com/TicketsBot/common/model"
@@ -76,6 +77,9 @@ func main() {
 
 	logger.Info("Connecting to cache")
 	cache.Instance = cache.NewCache()
+
+	logger.Info("Connecting to import S3")
+	s3.ConnectS3(config.Conf.S3Import.Endpoint, config.Conf.S3Import.AccessKey, config.Conf.S3Import.SecretKey)
 
 	logger.Info("Initialising microservice clients")
 	utils.ArchiverClient = archiverclient.NewArchiverClient(archiverclient.NewProxyRetriever(config.Conf.Bot.ObjectStore), []byte(config.Conf.Bot.AesKey))

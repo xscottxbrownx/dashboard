@@ -101,7 +101,7 @@
         queryLoading = false;
 
         dispatchClose();
-        notifySuccess('Imported settings successfully');
+        notifySuccess('Imported settings successfully - Your transcripts will be processed separately and may take some time to appear.');
     }
 
     function handleKeydown(e) {

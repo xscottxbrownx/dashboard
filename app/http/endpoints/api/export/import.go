@@ -11,21 +11,25 @@ import (
 	"os"
 	"time"
 
+	database2 "github.com/TicketsBot-cloud/database"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/api/export/validator"
 	"github.com/TicketsBot/GoPanel/botcontext"
+	"github.com/TicketsBot/GoPanel/config"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
+	"github.com/TicketsBot/GoPanel/s3"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
+	"github.com/minio/minio-go/v7"
 	"golang.org/x/sync/errgroup"
 )
 
+//	func ImportHandler(ctx *gin.Context) {
+//		ctx.JSON(401, "This endpoint is disabled")
+//	}
 func ImportHandler(ctx *gin.Context) {
-	ctx.JSON(401, "This endpoint is disabled")
-}
-func Importv2Handler(ctx *gin.Context) {
 	// Parse request body from multipart form
 	queryCtx, cancel := context.WithTimeout(context.Background(), time.Minute*1500)
 	defer cancel()
@@ -33,11 +37,11 @@ func Importv2Handler(ctx *gin.Context) {
 	var transcriptOutput *validator.GuildTranscriptsOutput
 	var data *validator.GuildData
 
-	dataFile, _, err := ctx.Request.FormFile("data_file")
-	dataFileExists := err == nil
+	dataFile, _, dataErr := ctx.Request.FormFile("data_file")
+	dataFileExists := dataErr == nil
 
-	transcriptsFile, _, err := ctx.Request.FormFile("transcripts_file")
-	transcriptFileExists := err == nil
+	transcriptsFile, _, transcriptsErr := ctx.Request.FormFile("transcripts_file")
+	transcriptFileExists := transcriptsErr == nil
 
 	// Decrypt file
 	publicKeyBlock, _ := pem.Decode([]byte(os.Getenv("V1_PUBLIC_KEY")))
@@ -81,6 +85,8 @@ func Importv2Handler(ctx *gin.Context) {
 		}
 	}
 
+	guildId, selfId := ctx.Keys["guildid"].(uint64), ctx.Keys["userid"].(uint64)
+
 	if transcriptFileExists {
 		defer transcriptsFile.Close()
 
@@ -96,9 +102,15 @@ func Importv2Handler(ctx *gin.Context) {
 			ctx.JSON(400, utils.ErrorJson(err))
 			return
 		}
-	}
 
-	guildId, selfId := ctx.Keys["guildid"].(uint64), ctx.Keys["userid"].(uint64)
+		// Upload transcripts
+		if transcriptFileExists {
+			if _, err := s3.S3Client.PutObject(ctx, config.Conf.S3Import.Bucket, fmt.Sprintf("transcripts/%d.zip", guildId), transcriptReader, transcriptReader.Size(), minio.PutObjectOptions{}); err != nil {
+				ctx.JSON(500, utils.ErrorStr("Failed to upload transcripts"))
+				return
+			}
+		}
+	}
 
 	botCtx, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
@@ -139,6 +151,7 @@ func Importv2Handler(ctx *gin.Context) {
 		ticketIdMap    = mapping["ticket"]
 		formIdMap      = mapping["form"]
 		formInputIdMap = mapping["form_input"]
+		panelIdMap     = mapping["panel"]
 	)
 
 	if ticketIdMap == nil {
@@ -151,6 +164,10 @@ func Importv2Handler(ctx *gin.Context) {
 
 	if formInputIdMap == nil {
 		formInputIdMap = make(map[int]int)
+	}
+
+	if panelIdMap == nil {
+		panelIdMap = make(map[int]int)
 	}
 
 	if dataFileExists {
@@ -489,8 +506,6 @@ func Importv2Handler(ctx *gin.Context) {
 		}
 		panelCount := len(existingPanels)
 
-		panelIdMap := make(map[int]int)
-
 		for _, panel := range data.Panels {
 			if premiumTier < premium.Premium && panelCount > 2 {
 				panel.ForceDisabled = true
@@ -512,8 +527,12 @@ func Importv2Handler(ctx *gin.Context) {
 				panel.WelcomeMessageEmbed = &newEmbedId
 			}
 
+			// TODO: Fix this permanently
+			panel.MessageId = panel.MessageId - 1
+
 			panelId, err := dbclient.Client.Panel.CreateWithTx(queryCtx, panelTx, panel)
 			if err != nil {
+				fmt.Println(err)
 				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
@@ -598,70 +617,45 @@ func Importv2Handler(ctx *gin.Context) {
 			return
 		}
 
-		// Import tickets
-		for _, ticket := range data.Tickets {
+		ticketCount, err := dbclient.Client.Tickets.GetTotalTicketCount(queryCtx, guildId)
+		if err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
+		ticketsToCreate := make([]database2.Ticket, len(data.Tickets))
+		ticketIdMap = make(map[int]int)
+
+		for i, ticket := range data.Tickets {
 			if _, ok := ticketIdMap[ticket.Id]; !ok {
 				var panelId *int
 				if ticket.PanelId != nil {
 					a := panelIdMap[*ticket.PanelId]
 					panelId = &a
 				}
-				newTicketId, err := dbclient.Client.Tickets.Create(queryCtx, guildId, ticket.UserId, ticket.IsThread, panelId)
-				if err != nil {
-					ctx.JSON(500, utils.ErrorJson(err))
-					return
+				ticketsToCreate[i] = database2.Ticket{
+					Id:               ticket.Id + ticketCount,
+					GuildId:          guildId,
+					ChannelId:        ticket.ChannelId,
+					UserId:           ticket.UserId,
+					Open:             ticket.Open,
+					OpenTime:         ticket.OpenTime,
+					WelcomeMessageId: ticket.WelcomeMessageId,
+					PanelId:          panelId,
+					HasTranscript:    ticket.HasTranscript,
+					CloseTime:        ticket.CloseTime,
+					IsThread:         ticket.IsThread,
+					JoinMessageId:    ticket.JoinMessageId,
+					NotesThreadId:    ticket.NotesThreadId,
 				}
 
-				ticketIdMap[ticket.Id] = newTicketId
-
-				if ticket.Open {
-					if err := dbclient.Client.Tickets.SetOpen(queryCtx, guildId, newTicketId); err != nil {
-						ctx.JSON(500, utils.ErrorJson(err))
-						return
-					}
-				} else {
-					if err := dbclient.Client.Tickets.Close(queryCtx, newTicketId, guildId); err != nil {
-						ctx.JSON(500, utils.ErrorJson(err))
-						return
-					}
-				}
-
-				if ticket.ChannelId != nil {
-					if err := dbclient.Client.Tickets.SetChannelId(queryCtx, guildId, newTicketId, *ticket.ChannelId); err != nil {
-						ctx.JSON(500, utils.ErrorJson(err))
-						return
-					}
-				}
-
-				if err := dbclient.Client.Tickets.SetHasTranscript(queryCtx, guildId, newTicketId, ticket.HasTranscript); err != nil {
-					ctx.JSON(500, utils.ErrorJson(err))
-					return
-				}
-				if ticket.NotesThreadId != nil {
-					if err := dbclient.Client.Tickets.SetNotesThreadId(queryCtx, guildId, newTicketId, *ticket.NotesThreadId); err != nil {
-						ctx.JSON(500, utils.ErrorJson(err))
-						return
-					}
-				}
-				if err := dbclient.Client.Tickets.SetStatus(queryCtx, guildId, newTicketId, ticket.Status); err != nil {
-					ctx.JSON(500, utils.ErrorJson(err))
-					return
-				}
+				ticketIdMap[ticket.Id] = ticket.Id + ticketCount
 			}
 		}
-	}
 
-	// Upload transcripts
-	if transcriptFileExists {
-		for ticketId, transcript := range transcriptOutput.Transcripts {
-			if err := utils.ArchiverClient.ImportTranscript(queryCtx, guildId, ticketIdMap[ticketId], transcript); err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
-				return
-			}
+		if err := dbclient.Client2.Tickets.BulkImport(queryCtx, guildId, ticketsToCreate); err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
 		}
-	}
-
-	if dataFileExists {
 
 		ticketsExtrasGroup, _ := errgroup.WithContext(queryCtx)
 
@@ -679,7 +673,22 @@ func Importv2Handler(ctx *gin.Context) {
 		// Import ticket last messages
 		ticketsExtrasGroup.Go(func() (err error) {
 			for _, msg := range data.TicketLastMessages {
-				err = dbclient.Client.TicketLastMessage.Set(queryCtx, guildId, ticketIdMap[msg.TicketId], *msg.Data.LastMessageId, *msg.Data.UserId, *msg.Data.UserIsStaff)
+				lastMessageId := uint64(0)
+				if msg.Data.LastMessageId != nil {
+					lastMessageId = *msg.Data.LastMessageId
+				}
+
+				userId := uint64(0)
+				if msg.Data.UserId != nil {
+					userId = *msg.Data.UserId
+				}
+
+				userIsStaff := false
+				if msg.Data.UserIsStaff != nil {
+					userIsStaff = *msg.Data.UserIsStaff
+				}
+
+				err = dbclient.Client.TicketLastMessage.Set(queryCtx, guildId, ticketIdMap[msg.TicketId], lastMessageId, userId, userIsStaff)
 			}
 			return
 		})
@@ -764,6 +773,7 @@ func Importv2Handler(ctx *gin.Context) {
 	newMapping["ticket"] = ticketIdMap
 	newMapping["form"] = formIdMap
 	newMapping["form_input"] = formInputIdMap
+	newMapping["panel"] = panelIdMap
 
 	for area, m := range newMapping {
 		for sourceId, targetId := range m {

@@ -1,10 +1,11 @@
 package config
 
 import (
+	"os"
+
 	"github.com/BurntSushi/toml"
 	"github.com/caarlos0/env/v11"
 	"go.uber.org/zap/zapcore"
-	"os"
 )
 
 type Config struct {
@@ -56,6 +57,12 @@ type Config struct {
 		Uri string `env:"URI,required"`
 	} `envPrefix:"CACHE_"`
 	SecureProxyUrl string `env:"SECURE_PROXY_URL"`
+	S3Import       struct {
+		Endpoint  string `env:"ENDPOINT,required"`
+		AccessKey string `env:"ACCESS_KEY,required"`
+		SecretKey string `env:"SECRET_KEY,required"`
+		Bucket    string `env:"BUCKET,required"`
+	} `envPrefix:"S3_IMPORT_"`
 }
 
 // TODO: Don't use a global variable
