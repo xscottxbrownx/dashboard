@@ -23,6 +23,7 @@ import (
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4"
 	"github.com/minio/minio-go/v7"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -543,6 +544,8 @@ func ImportHandler(ctx *gin.Context) {
 		}
 		panelCount := len(existingPanels)
 
+		panelTx, _ := dbclient.Client.Panel.BeginTx(queryCtx, pgx.TxOptions{})
+
 		// Import Panels
 		log.Logger.Info("Importing panels", zap.Uint64("guild", guildId))
 		for _, panel := range data.Panels {
@@ -569,8 +572,10 @@ func ImportHandler(ctx *gin.Context) {
 
 				// TODO: Fix this permanently
 				panel.MessageId = panel.MessageId - 1
+				newCustomId, _ := utils.RandString(30)
+				panel.CustomId = newCustomId
 
-				panelId, err := dbclient.Client.Panel.Create(queryCtx, panel)
+				panelId, err := dbclient.Client.Panel.CreateWithTx(queryCtx, panelTx, panel)
 				if err != nil {
 					fmt.Println(err)
 					ctx.JSON(500, utils.ErrorJson(err))
@@ -582,6 +587,11 @@ func ImportHandler(ctx *gin.Context) {
 
 				panelCount++
 			}
+		}
+
+		if err := panelTx.Commit(queryCtx); err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
 		}
 
 		log.Logger.Info("Importing mapping for panels", zap.Uint64("guild", guildId))
@@ -683,6 +693,7 @@ func ImportHandler(ctx *gin.Context) {
 		// Import tickets
 		for i, ticket := range data.Tickets {
 			if _, ok := ticketIdMap[ticket.Id]; !ok {
+				log.Logger.Info("Importing ticket", zap.Uint64("guild", guildId), zap.Int("ticket", ticket.Id), zap.Int("new_ticket", ticket.Id+ticketCount))
 				var panelId *int
 				if ticket.PanelId != nil {
 					a := panelIdMap[*ticket.PanelId]
