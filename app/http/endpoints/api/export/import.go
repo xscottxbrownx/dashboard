@@ -468,7 +468,8 @@ func ImportHandler(ctx *gin.Context) {
 		log.Logger.Info("Importing forms", zap.Uint64("guild", guildId))
 		for _, form := range data.Forms {
 			if _, ok := formIdMap[form.Id]; !ok {
-				formId, err := dbclient.Client.Forms.Create(queryCtx, guildId, form.Title, form.CustomId)
+				newCustomId, _ := utils.RandString(30)
+				formId, err := dbclient.Client.Forms.Create(queryCtx, guildId, form.Title, newCustomId)
 				log.Logger.Info("Imported form", zap.Uint64("guild", guildId), zap.String("title", form.Title))
 				if err != nil {
 					return
@@ -492,7 +493,8 @@ func ImportHandler(ctx *gin.Context) {
 		log.Logger.Info("Importing form inputs", zap.Uint64("guild", guildId))
 		for _, input := range data.FormInputs {
 			if _, ok := formInputIdMap[input.Id]; !ok {
-				newInputId, err := dbclient.Client.FormInput.Create(queryCtx, formIdMap[input.FormId], input.CustomId, input.Style, input.Label, input.Placeholder, input.Required, input.MinLength, input.MaxLength)
+				newCustomId, _ := utils.RandString(30)
+				newInputId, err := dbclient.Client.FormInput.Create(queryCtx, formIdMap[input.FormId], newCustomId, input.Style, input.Label, input.Placeholder, input.Required, input.MinLength, input.MaxLength)
 				if err != nil {
 					ctx.JSON(500, utils.ErrorJson(err))
 					return
