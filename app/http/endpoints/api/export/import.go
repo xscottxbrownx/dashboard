@@ -438,12 +438,12 @@ func ImportHandler(ctx *gin.Context) {
 				continue
 			}
 
-			teamId, _ := dbclient.Client.SupportTeam.Create(queryCtx, guildId, team.Name)
+			teamId, err := dbclient.Client.SupportTeam.Create(queryCtx, guildId, fmt.Sprintf("%s (Imported)", team.Name))
 			log.Logger.Info("Imported support team", zap.Uint64("guild", guildId), zap.String("name", team.Name))
-			// if err != nil {
-			// 	// ctx.JSON(500, utils.ErrorJson(err))
-			// 	// return
-			// }
+			if err != nil {
+				ctx.JSON(500, utils.ErrorJson(err))
+				return
+			}
 
 			supportTeamIdMap[team.Id] = teamId
 		}
@@ -571,6 +571,8 @@ func ImportHandler(ctx *gin.Context) {
 					newEmbedId := embedMap[*panel.WelcomeMessageEmbed]
 					panel.WelcomeMessageEmbed = &newEmbedId
 				}
+
+				panel.Title = fmt.Sprintf("%s (Imported)", panel.Title)
 
 				// TODO: Fix this permanently
 				panel.MessageId = panel.MessageId - 1
