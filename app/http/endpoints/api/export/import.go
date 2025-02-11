@@ -432,18 +432,12 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import Support Teams
 		for _, team := range data.SupportTeams {
-			existingTeam, exists, _ := dbclient.Client.SupportTeam.GetByName(queryCtx, guildId, team.Name)
-			if exists {
-				supportTeamIdMap[team.Id] = existingTeam.Id
-				continue
-			}
-
 			teamId, err := dbclient.Client.SupportTeam.Create(queryCtx, guildId, fmt.Sprintf("%s (Imported)", team.Name))
-			log.Logger.Info("Imported support team", zap.Uint64("guild", guildId), zap.String("name", team.Name))
 			if err != nil {
 				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
+			log.Logger.Info("Imported support team", zap.Uint64("guild", guildId), zap.String("name", team.Name))
 
 			supportTeamIdMap[team.Id] = teamId
 		}
@@ -469,7 +463,7 @@ func ImportHandler(ctx *gin.Context) {
 		for _, form := range data.Forms {
 			if _, ok := formIdMap[form.Id]; !ok {
 				newCustomId, _ := utils.RandString(30)
-				formId, err := dbclient.Client.Forms.Create(queryCtx, guildId, form.Title, newCustomId)
+				formId, err := dbclient.Client.Forms.Create(queryCtx, guildId, fmt.Sprintf("%s (Imported)", form.Title), newCustomId)
 				log.Logger.Info("Imported form", zap.Uint64("guild", guildId), zap.String("title", form.Title))
 				if err != nil {
 					return
