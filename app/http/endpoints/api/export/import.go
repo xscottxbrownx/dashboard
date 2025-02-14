@@ -33,6 +33,11 @@ import (
 //		ctx.JSON(401, "This endpoint is disabled")
 //	}
 func ImportHandler(ctx *gin.Context) {
+	// Return slices
+	successfulItems := make([]string, 0)
+	failedItems := make([]string, 0)
+	skippedItems := make([]string, 0)
+
 	// Parse request body from multipart form
 	queryCtx, cancel := context.WithTimeout(context.Background(), time.Minute*1500)
 	defer cancel()
@@ -109,8 +114,9 @@ func ImportHandler(ctx *gin.Context) {
 		// Upload transcripts
 		if transcriptFileExists {
 			if _, err := s3.S3Client.PutObject(ctx, config.Conf.S3Import.Bucket, fmt.Sprintf("transcripts/%d.zip", guildId), transcriptReader, transcriptReader.Size(), minio.PutObjectOptions{}); err != nil {
-				ctx.JSON(500, utils.ErrorStr("Failed to upload transcripts"))
-				return
+				failedItems = append(failedItems, "Transcripts")
+			} else {
+				successfulItems = append(successfulItems, "Transcripts")
 			}
 		}
 	}
@@ -175,6 +181,15 @@ func ImportHandler(ctx *gin.Context) {
 
 	if dataFileExists {
 
+		if data.GuildIsGloballyBlacklisted {
+			reason := "Blacklisted on v1"
+			_ = dbclient.Client.ServerBlacklist.Add(queryCtx, guildId, &reason)
+			log.Logger.Info("Imported globally blacklisted", zap.Uint64("guild", guildId))
+
+			ctx.JSON(403, "This server is blacklisted on v1")
+			return
+		}
+
 		group, _ := errgroup.WithContext(queryCtx)
 
 		// Import active language
@@ -183,7 +198,11 @@ func ImportHandler(ctx *gin.Context) {
 			if data.ActiveLanguage != nil {
 				lang = *data.ActiveLanguage
 			}
-			_ = dbclient.Client.ActiveLanguage.Set(queryCtx, guildId, lang)
+			if err := dbclient.Client.ActiveLanguage.Set(queryCtx, guildId, lang); err != nil {
+				failedItems = append(failedItems, "Language")
+			} else {
+				successfulItems = append(successfulItems, "Language")
+			}
 			log.Logger.Info("Imported active language", zap.Uint64("guild", guildId), zap.String("language", lang))
 
 			return
@@ -192,7 +211,11 @@ func ImportHandler(ctx *gin.Context) {
 		// Import archive channel
 		group.Go(func() (err error) {
 			if data.ArchiveChannel != nil {
-				err = dbclient.Client.ArchiveChannel.Set(queryCtx, guildId, data.ArchiveChannel)
+				if err := dbclient.Client.ArchiveChannel.Set(queryCtx, guildId, data.ArchiveChannel); err != nil {
+					failedItems = append(failedItems, "Archive Channel")
+				} else {
+					successfulItems = append(successfulItems, "Archive Channel")
+				}
 				log.Logger.Info("Imported archive channel", zap.Uint64("guild", guildId), zap.Uint64("channel", *data.ArchiveChannel))
 			}
 
@@ -205,7 +228,11 @@ func ImportHandler(ctx *gin.Context) {
 				if premiumTier < premium.Premium {
 					data.AutocloseSettings.Enabled = false
 				}
-				err = dbclient.Client.AutoClose.Set(queryCtx, guildId, *data.AutocloseSettings)
+				if err := dbclient.Client.AutoClose.Set(queryCtx, guildId, *data.AutocloseSettings); err != nil {
+					failedItems = append(failedItems, "Autoclose Settings")
+				} else {
+					successfulItems = append(successfulItems, "Autoclose Settings")
+				}
 				log.Logger.Info("Imported autoclose settings", zap.Uint64("guild", guildId), zap.Bool("enabled", data.AutocloseSettings.Enabled))
 			}
 
@@ -214,12 +241,19 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import blacklisted users
 		group.Go(func() (err error) {
+			failedUsers := 0
 			for _, user := range data.GuildBlacklistedUsers {
 				err = dbclient.Client.Blacklist.Add(queryCtx, guildId, user)
 				log.Logger.Info("Imported blacklisted user", zap.Uint64("guild", guildId), zap.Uint64("user", user))
 				if err != nil {
-					return
+					failedUsers++
 				}
+			}
+
+			if failedUsers == 0 {
+				successfulItems = append(successfulItems, "Blacklisted Users")
+			} else {
+				failedItems = append(failedItems, fmt.Sprintf("Blacklisted Users (x%d)", failedUsers))
 			}
 
 			return
@@ -228,7 +262,11 @@ func ImportHandler(ctx *gin.Context) {
 		// Import channel category
 		group.Go(func() (err error) {
 			if data.ChannelCategory != nil {
-				err = dbclient.Client.ChannelCategory.Set(queryCtx, guildId, *data.ChannelCategory)
+				if err := dbclient.Client.ChannelCategory.Set(queryCtx, guildId, *data.ChannelCategory); err != nil {
+					failedItems = append(failedItems, "Channel Category")
+				} else {
+					successfulItems = append(successfulItems, "Channel Category")
+				}
 				log.Logger.Info("Imported channel category", zap.Uint64("guild", guildId), zap.Uint64("category", *data.ChannelCategory))
 			}
 
@@ -238,7 +276,11 @@ func ImportHandler(ctx *gin.Context) {
 		// Import claim settings
 		group.Go(func() (err error) {
 			if data.ClaimSettings != nil {
-				err = dbclient.Client.ClaimSettings.Set(queryCtx, guildId, *data.ClaimSettings)
+				if err := dbclient.Client.ClaimSettings.Set(queryCtx, guildId, *data.ClaimSettings); err != nil {
+					failedItems = append(failedItems, "Claim Settings")
+				} else {
+					successfulItems = append(successfulItems, "Claim Settings")
+				}
 				log.Logger.Info("Imported claim settings", zap.Uint64("guild", guildId), zap.Any("settings", data.ClaimSettings))
 			}
 
@@ -247,7 +289,11 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import close confirmation enabled
 		group.Go(func() (err error) {
-			err = dbclient.Client.CloseConfirmation.Set(queryCtx, guildId, data.CloseConfirmationEnabled)
+			if err := dbclient.Client.CloseConfirmation.Set(queryCtx, guildId, data.CloseConfirmationEnabled); err != nil {
+				failedItems = append(failedItems, "Close Confirmation")
+			} else {
+				successfulItems = append(successfulItems, "Close Confirmation")
+			}
 			log.Logger.Info("Imported close confirmation enabled", zap.Uint64("guild", guildId), zap.Bool("enabled", data.CloseConfirmationEnabled))
 			return
 		})
@@ -258,12 +304,20 @@ func ImportHandler(ctx *gin.Context) {
 				return
 			}
 
+			failedColours := 0
+
 			for k, v := range data.CustomColors {
 				err = dbclient.Client.CustomColours.Set(queryCtx, guildId, k, v)
 				log.Logger.Info("Imported custom colour", zap.Uint64("guild", guildId), zap.Int16("key", k), zap.Int("value", v))
 				if err != nil {
-					return
+					failedColours++
 				}
+			}
+
+			if failedColours == 0 {
+				successfulItems = append(successfulItems, "Custom Colours")
+			} else {
+				failedItems = append(failedItems, fmt.Sprintf("Custom Colours (x%d)", failedColours))
 			}
 
 			return
@@ -271,24 +325,22 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import feedback enabled
 		group.Go(func() (err error) {
-			err = dbclient.Client.FeedbackEnabled.Set(queryCtx, guildId, data.FeedbackEnabled)
-			log.Logger.Info("Imported feedback enabled", zap.Uint64("guild", guildId), zap.Bool("enabled", data.FeedbackEnabled))
-			return
-		})
-
-		// Import is globally blacklisted
-		group.Go(func() (err error) {
-			if data.GuildIsGloballyBlacklisted {
-				reason := "Blacklisted on v1"
-				err = dbclient.Client.ServerBlacklist.Add(queryCtx, guildId, &reason)
-				log.Logger.Info("Imported globally blacklisted", zap.Uint64("guild", guildId))
+			if err := dbclient.Client.FeedbackEnabled.Set(queryCtx, guildId, data.FeedbackEnabled); err != nil {
+				failedItems = append(failedItems, "Feedback Enabled")
+			} else {
+				successfulItems = append(successfulItems, "Feedback Enabled")
 			}
+			log.Logger.Info("Imported feedback enabled", zap.Uint64("guild", guildId), zap.Bool("enabled", data.FeedbackEnabled))
 			return
 		})
 
 		// Import Guild Metadata
 		group.Go(func() (err error) {
-			err = dbclient.Client.GuildMetadata.Set(queryCtx, guildId, data.GuildMetadata)
+			if err := dbclient.Client.GuildMetadata.Set(queryCtx, guildId, data.GuildMetadata); err != nil {
+				failedItems = append(failedItems, "Guild Metadata")
+			} else {
+				successfulItems = append(successfulItems, "Guild Metadata")
+			}
 			log.Logger.Info("Imported guild metadata", zap.Uint64("guild", guildId), zap.Any("metadata", data.GuildMetadata))
 			return
 		})
@@ -296,7 +348,11 @@ func ImportHandler(ctx *gin.Context) {
 		// Import Naming Scheme
 		group.Go(func() (err error) {
 			if data.NamingScheme != nil {
-				err = dbclient.Client.NamingScheme.Set(queryCtx, guildId, *data.NamingScheme)
+				if err := dbclient.Client.NamingScheme.Set(queryCtx, guildId, *data.NamingScheme); err != nil {
+					failedItems = append(failedItems, "Naming Scheme")
+				} else {
+					successfulItems = append(successfulItems, "Naming Scheme")
+				}
 				log.Logger.Info("Imported naming scheme", zap.Uint64("guild", guildId), zap.Any("scheme", data.NamingScheme))
 			}
 
@@ -305,15 +361,23 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import On Call Users
 		group.Go(func() (err error) {
+
+			failedUsers := 0
+
 			for _, user := range data.OnCallUsers {
 				if isOnCall, oncallerr := dbclient.Client.OnCall.IsOnCall(queryCtx, guildId, user); oncallerr != nil {
 					return oncallerr
 				} else if !isOnCall {
-					_, err = dbclient.Client.OnCall.Toggle(queryCtx, guildId, user)
-					if err != nil {
-						return
+					if _, err := dbclient.Client.OnCall.Toggle(queryCtx, guildId, user); err != nil {
+						failedUsers++
 					}
 				}
+			}
+
+			if failedUsers == 0 {
+				successfulItems = append(successfulItems, "On Call Users")
+			} else {
+				failedItems = append(failedItems, fmt.Sprintf("On Call Users (x%d)", failedUsers))
 			}
 
 			return
@@ -321,20 +385,29 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import User Permissions
 		group.Go(func() (err error) {
+
+			failedUsers := 0
+
 			for _, perm := range data.UserPermissions {
 				if perm.IsSupport {
-					err = dbclient.Client.Permissions.AddSupport(queryCtx, guildId, perm.Snowflake)
+					if err := dbclient.Client.Permissions.AddSupport(queryCtx, guildId, perm.Snowflake); err != nil {
+						failedUsers++
+					}
 					log.Logger.Info("Imported user permission", zap.Uint64("guild", guildId), zap.Uint64("user", perm.Snowflake), zap.Bool("support", true))
 				}
 
 				if perm.IsAdmin {
-					err = dbclient.Client.Permissions.AddAdmin(queryCtx, guildId, perm.Snowflake)
+					if err := dbclient.Client.Permissions.AddAdmin(queryCtx, guildId, perm.Snowflake); err != nil {
+						failedUsers++
+					}
 					log.Logger.Info("Imported user permission", zap.Uint64("guild", guildId), zap.Uint64("user", perm.Snowflake), zap.Bool("admin", true))
 				}
+			}
 
-				if err != nil {
-					return
-				}
+			if failedUsers == 0 {
+				successfulItems = append(successfulItems, "User Permissions")
+			} else {
+				failedItems = append(failedItems, fmt.Sprintf("User Permissions (x%d)", failedUsers))
 			}
 
 			return
@@ -342,12 +415,20 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import Guild Blacklisted Roles
 		group.Go(func() (err error) {
+
+			failedRoles := 0
+
 			for _, role := range data.GuildBlacklistedRoles {
-				err = dbclient.Client.RoleBlacklist.Add(queryCtx, guildId, role)
-				log.Logger.Info("Imported guild blacklisted role", zap.Uint64("guild", guildId), zap.Uint64("role", role))
-				if err != nil {
-					return
+				if err := dbclient.Client.RoleBlacklist.Add(queryCtx, guildId, role); err != nil {
+					failedRoles++
 				}
+				log.Logger.Info("Imported guild blacklisted role", zap.Uint64("guild", guildId), zap.Uint64("role", role))
+			}
+
+			if failedRoles == 0 {
+				successfulItems = append(successfulItems, "Guild Blacklisted Roles")
+			} else {
+				failedItems = append(failedItems, fmt.Sprintf("Guild Blacklisted Roles (x%d)", failedRoles))
 			}
 
 			return
@@ -355,20 +436,29 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import Role Permissions
 		group.Go(func() (err error) {
+
+			failedRoles := 0
+
 			for _, perm := range data.RolePermissions {
 				if perm.IsSupport {
-					err = dbclient.Client.RolePermissions.AddSupport(queryCtx, guildId, perm.Snowflake)
+					if err := dbclient.Client.RolePermissions.AddSupport(queryCtx, guildId, perm.Snowflake); err != nil {
+						failedRoles++
+					}
 					log.Logger.Info("Imported role permission", zap.Uint64("guild", guildId), zap.Uint64("role", perm.Snowflake), zap.Bool("support", true))
 				}
 
 				if perm.IsAdmin {
-					err = dbclient.Client.RolePermissions.AddAdmin(queryCtx, guildId, perm.Snowflake)
+					if err := dbclient.Client.RolePermissions.AddAdmin(queryCtx, guildId, perm.Snowflake); err != nil {
+						failedRoles++
+					}
 					log.Logger.Info("Imported role permission", zap.Uint64("guild", guildId), zap.Uint64("role", perm.Snowflake), zap.Bool("admin", true))
 				}
+			}
 
-				if err != nil {
-					return
-				}
+			if failedRoles == 0 {
+				successfulItems = append(successfulItems, "Role Permissions")
+			} else {
+				failedItems = append(failedItems, fmt.Sprintf("Role Permissions (x%d)", failedRoles))
 			}
 
 			return
@@ -376,12 +466,20 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import Tags
 		group.Go(func() (err error) {
+
+			failedTags := 0
+
 			for _, tag := range data.Tags {
-				err = dbclient.Client.Tag.Set(queryCtx, tag)
-				log.Logger.Info("Imported tag", zap.Uint64("guild", guildId), zap.String("name", tag.Id))
-				if err != nil {
-					return
+				if err := dbclient.Client.Tag.Set(queryCtx, tag); err != nil {
+					failedTags++
 				}
+				log.Logger.Info("Imported tag", zap.Uint64("guild", guildId), zap.String("name", tag.Id))
+			}
+
+			if failedTags == 0 {
+				successfulItems = append(successfulItems, "Tags")
+			} else {
+				failedItems = append(failedItems, fmt.Sprintf("Tags (x%d)", failedTags))
 			}
 
 			return
@@ -390,7 +488,11 @@ func ImportHandler(ctx *gin.Context) {
 		// Import Ticket Limit
 		group.Go(func() (err error) {
 			if data.TicketLimit != nil {
-				err = dbclient.Client.TicketLimit.Set(queryCtx, guildId, uint8(*data.TicketLimit))
+				if err := dbclient.Client.TicketLimit.Set(queryCtx, guildId, uint8(*data.TicketLimit)); err != nil {
+					failedItems = append(failedItems, "Ticket Limit")
+				} else {
+					successfulItems = append(successfulItems, "Ticket Limit")
+				}
 				log.Logger.Info("Imported ticket limit", zap.Uint64("guild", guildId), zap.Uint8("limit", uint8(*data.TicketLimit)))
 			}
 
@@ -399,7 +501,11 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import Ticket Permissions
 		group.Go(func() (err error) {
-			err = dbclient.Client.TicketPermissions.Set(queryCtx, guildId, data.TicketPermissions)
+			if err := dbclient.Client.TicketPermissions.Set(queryCtx, guildId, data.TicketPermissions); err != nil {
+				failedItems = append(failedItems, "Ticket Permissions")
+			} else {
+				successfulItems = append(successfulItems, "Ticket Permissions")
+			}
 			log.Logger.Info("Imported ticket permissions", zap.Uint64("guild", guildId), zap.Any("permissions", data.TicketPermissions))
 
 			return
@@ -407,7 +513,11 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import Users Can Close
 		group.Go(func() (err error) {
-			err = dbclient.Client.UsersCanClose.Set(queryCtx, guildId, data.UsersCanClose)
+			if err := dbclient.Client.UsersCanClose.Set(queryCtx, guildId, data.UsersCanClose); err != nil {
+				failedItems = append(failedItems, "Users Can Close")
+			} else {
+				successfulItems = append(successfulItems, "Users Can Close")
+			}
 			log.Logger.Info("Imported users can close", zap.Uint64("guild", guildId), zap.Bool("can_close", data.UsersCanClose))
 
 			return
@@ -416,61 +526,98 @@ func ImportHandler(ctx *gin.Context) {
 		// Import Welcome Message
 		group.Go(func() (err error) {
 			if data.WelcomeMessage != nil {
-				err = dbclient.Client.WelcomeMessages.Set(queryCtx, guildId, *data.WelcomeMessage)
+				if err := dbclient.Client.WelcomeMessages.Set(queryCtx, guildId, *data.WelcomeMessage); err != nil {
+					failedItems = append(failedItems, "Welcome Message")
+				} else {
+					successfulItems = append(successfulItems, "Welcome Message")
+				}
 				log.Logger.Info("Imported welcome message", zap.Uint64("guild", guildId), zap.String("message", *data.WelcomeMessage))
 			}
 
 			return
 		})
 
-		if err := group.Wait(); err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
-			return
-		}
+		_ = group.Wait()
 
 		supportTeamIdMap := make(map[int]int)
+
+		failedSupportTeams := 0
 
 		// Import Support Teams
 		for _, team := range data.SupportTeams {
 			teamId, err := dbclient.Client.SupportTeam.Create(queryCtx, guildId, fmt.Sprintf("%s (Imported)", team.Name))
 			if err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
-				return
+				failedSupportTeams++
 			}
 			log.Logger.Info("Imported support team", zap.Uint64("guild", guildId), zap.String("name", team.Name))
 
 			supportTeamIdMap[team.Id] = teamId
 		}
 
+		if failedSupportTeams == 0 {
+			successfulItems = append(successfulItems, "Support Teams")
+		} else {
+			failedItems = append(failedItems, fmt.Sprintf("Support Teams (x%d)", failedSupportTeams))
+		}
+
+		failedSupportTeamUsers := 0
+
 		// Import Support Team Users
 		log.Logger.Info("Importing support team users", zap.Uint64("guild", guildId))
 		for teamId, users := range data.SupportTeamUsers {
 			for _, user := range users {
-				_ = dbclient.Client.SupportTeamMembers.Add(queryCtx, supportTeamIdMap[teamId], user)
+				if err := dbclient.Client.SupportTeamMembers.Add(queryCtx, supportTeamIdMap[teamId], user); err != nil {
+					failedSupportTeamUsers++
+				}
 			}
 		}
+
+		if failedSupportTeamUsers == 0 {
+			successfulItems = append(successfulItems, "Support Team Users")
+		} else {
+			failedItems = append(failedItems, fmt.Sprintf("Support Team Users (x%d)", failedSupportTeamUsers))
+		}
+
+		failedSupportTeamRoles := 0
 
 		// Import Support Team Roles
 		log.Logger.Info("Importing support team roles", zap.Uint64("guild", guildId))
 		for teamId, roles := range data.SupportTeamRoles {
 			for _, role := range roles {
-				_ = dbclient.Client.SupportTeamRoles.Add(queryCtx, supportTeamIdMap[teamId], role)
+				if err := dbclient.Client.SupportTeamRoles.Add(queryCtx, supportTeamIdMap[teamId], role); err != nil {
+					failedSupportTeamRoles++
+				}
 			}
+		}
+
+		if failedSupportTeamRoles == 0 {
+			successfulItems = append(successfulItems, "Support Team Roles")
+		} else {
+			failedItems = append(failedItems, fmt.Sprintf("Support Team Roles (x%d)", failedSupportTeamRoles))
 		}
 
 		// Import forms
 		log.Logger.Info("Importing forms", zap.Uint64("guild", guildId))
+		failedForms := make([]int, 0)
 		for _, form := range data.Forms {
 			if _, ok := formIdMap[form.Id]; !ok {
 				newCustomId, _ := utils.RandString(30)
 				formId, err := dbclient.Client.Forms.Create(queryCtx, guildId, fmt.Sprintf("%s (Imported)", form.Title), newCustomId)
 				log.Logger.Info("Imported form", zap.Uint64("guild", guildId), zap.String("title", form.Title))
 				if err != nil {
-					return
+					failedForms = append(failedForms, form.Id)
+				} else {
+					formIdMap[form.Id] = formId
 				}
-
-				formIdMap[form.Id] = formId
+			} else {
+				skippedItems = append(skippedItems, fmt.Sprintf("Form (Title: %s)", form.Title))
 			}
+		}
+
+		if len(failedForms) == 0 {
+			successfulItems = append(successfulItems, "Forms")
+		} else {
+			failedItems = append(failedItems, fmt.Sprintf("Forms (x%d)", len(failedForms)))
 		}
 
 		log.Logger.Info("Importing mapping for forms", zap.Uint64("guild", guildId))
@@ -485,16 +632,23 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import form inputs
 		log.Logger.Info("Importing form inputs", zap.Uint64("guild", guildId))
+		failedFormInputs := make([]int, 0)
 		for _, input := range data.FormInputs {
+			if failedForms != nil && utils.Contains(failedForms, input.FormId) {
+				skippedItems = append(skippedItems, fmt.Sprintf("Form Input (Form: %d, ID: %d)", input.FormId, input.Id))
+				continue
+			}
 			if _, ok := formInputIdMap[input.Id]; !ok {
 				newCustomId, _ := utils.RandString(30)
 				newInputId, err := dbclient.Client.FormInput.Create(queryCtx, formIdMap[input.FormId], newCustomId, input.Style, input.Label, input.Placeholder, input.Required, input.MinLength, input.MaxLength)
 				if err != nil {
-					ctx.JSON(500, utils.ErrorJson(err))
-					return
+					failedItems = append(failedItems, fmt.Sprintf("Form Input (Form: %d, ID: %d)", input.FormId, input.Id))
+					failedFormInputs = append(failedFormInputs, input.Id)
+				} else {
+					formInputIdMap[input.Id] = newInputId
 				}
-
-				formInputIdMap[input.Id] = newInputId
+			} else {
+				skippedItems = append(skippedItems, fmt.Sprintf("Form Input (Form: %d, ID: %d)", input.FormId, input.Id))
 			}
 		}
 
@@ -512,6 +666,7 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import embeds
 		log.Logger.Info("Importing embeds", zap.Uint64("guild", guildId))
+		failedEmbeds := make([]int, 0)
 		for _, embed := range data.Embeds {
 			var embedFields []database.EmbedField
 
@@ -525,11 +680,17 @@ func ImportHandler(ctx *gin.Context) {
 
 			embedId, err := dbclient.Client.Embeds.CreateWithFields(queryCtx, &embed, embedFields)
 			if err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
-				return
+				failedEmbeds = append(failedEmbeds, embed.Id)
+			} else {
+				log.Logger.Info("Imported embed", zap.Uint64("guild", guildId), zap.Int("embed", embed.Id), zap.Int("new_embed", embedId))
+				embedMap[embed.Id] = embedId
 			}
+		}
 
-			embedMap[embed.Id] = embedId
+		if len(failedEmbeds) == 0 {
+			successfulItems = append(successfulItems, "Embeds")
+		} else {
+			failedItems = append(failedItems, fmt.Sprintf("Embeds (x%d)", len(failedEmbeds)))
 		}
 
 		// Panel id map
@@ -544,6 +705,7 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import Panels
 		log.Logger.Info("Importing panels", zap.Uint64("guild", guildId))
+		failedPanels := make([]int, 0)
 		for _, panel := range data.Panels {
 			if _, ok := panelIdMap[panel.PanelId]; !ok {
 				if premiumTier < premium.Premium && panelCount > 2 {
@@ -552,6 +714,10 @@ func ImportHandler(ctx *gin.Context) {
 				}
 
 				if panel.FormId != nil {
+					if failedForms != nil && utils.Contains(failedForms, *panel.FormId) {
+						skippedItems = append(skippedItems, fmt.Sprintf("Panel (ID: %d, missing form)", panel.PanelId))
+						continue
+					}
 					newFormId := formIdMap[*panel.FormId]
 					panel.FormId = &newFormId
 				}
@@ -562,8 +728,10 @@ func ImportHandler(ctx *gin.Context) {
 				}
 
 				if panel.WelcomeMessageEmbed != nil {
-					newEmbedId := embedMap[*panel.WelcomeMessageEmbed]
-					panel.WelcomeMessageEmbed = &newEmbedId
+					if failedEmbeds == nil || !utils.Contains(failedEmbeds, *panel.WelcomeMessageEmbed) {
+						newEmbedId := embedMap[*panel.WelcomeMessageEmbed]
+						panel.WelcomeMessageEmbed = &newEmbedId
+					}
 				}
 
 				panel.Title = fmt.Sprintf("%s (Imported)", panel.Title)
@@ -575,16 +743,19 @@ func ImportHandler(ctx *gin.Context) {
 
 				panelId, err := dbclient.Client.Panel.CreateWithTx(queryCtx, panelTx, panel)
 				if err != nil {
-					fmt.Println(err)
-					ctx.JSON(500, utils.ErrorJson(err))
-					return
+					failedPanels = append(failedPanels, panel.PanelId)
+				} else {
+					log.Logger.Info("Imported panel", zap.Uint64("guild", guildId), zap.Int("panel", panel.PanelId), zap.Int("new_panel", panelId))
+					panelIdMap[panel.PanelId] = panelId
+					panelCount++
 				}
-				log.Logger.Info("Imported panel", zap.Uint64("guild", guildId), zap.Int("panel", panel.PanelId), zap.Int("new_panel", panelId))
-
-				panelIdMap[panel.PanelId] = panelId
-
-				panelCount++
 			}
+		}
+
+		if len(failedPanels) == 0 {
+			successfulItems = append(successfulItems, "Panels")
+		} else {
+			failedItems = append(failedItems, fmt.Sprintf("Panels (x%d)", len(failedPanels)))
 		}
 
 		if err := panelTx.Commit(queryCtx); err != nil {
@@ -604,68 +775,132 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Import Panel Access Control Rules
 		log.Logger.Info("Importing panel access control rules", zap.Uint64("guild", guildId))
+		failedPanelAccessControlRules := 0
 		for panelId, rules := range data.PanelAccessControlRules {
-			if err := dbclient.Client.PanelAccessControlRules.Replace(queryCtx, panelIdMap[panelId], rules); err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
-				return
+			if len(failedPanels) > 0 && utils.Contains(failedPanels, panelId) {
+				skippedItems = append(skippedItems, fmt.Sprintf("Panel Access Control Rules (Panel: %d)", panelId))
+				continue
 			}
+			if _, ok := panelIdMap[panelId]; ok {
+				if err := dbclient.Client.PanelAccessControlRules.Replace(queryCtx, panelIdMap[panelId], rules); err != nil {
+					failedPanelAccessControlRules++
+				}
+			} else {
+				skippedItems = append(skippedItems, fmt.Sprintf("Panel Access Control Rules (Panel: %d)", panelId))
+			}
+		}
+
+		if failedPanelAccessControlRules == 0 {
+			successfulItems = append(successfulItems, "Panel Access Control Rules")
+		} else {
+			failedItems = append(failedItems, fmt.Sprintf("Panel Access Control Rules (x%d)", failedPanelAccessControlRules))
 		}
 
 		// Import Panel Mention User
 		log.Logger.Info("Importing panel mention user", zap.Uint64("guild", guildId))
+		failedPanelMentionUser := 0
 		for panelId, shouldMention := range data.PanelMentionUser {
+			if len(failedPanels) > 0 && utils.Contains(failedPanels, panelId) {
+				skippedItems = append(skippedItems, fmt.Sprintf("Panel Mention User (Panel: %d)", panelId))
+				continue
+			}
 			if err := dbclient.Client.PanelUserMention.Set(queryCtx, panelIdMap[panelId], shouldMention); err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
-				return
+				failedPanelMentionUser++
 			}
 		}
 
+		if failedPanelMentionUser == 0 {
+			successfulItems = append(successfulItems, "Panel Mention User")
+		} else {
+			failedItems = append(failedItems, fmt.Sprintf("Panel Mention User (x%d)", failedPanelMentionUser))
+		}
+
 		// Import Panel Role Mentions
+		failedPanelRoleMentions := 0
 		log.Logger.Info("Importing panel role mentions", zap.Uint64("guild", guildId))
 		for panelId, roles := range data.PanelRoleMentions {
-			if err := dbclient.Client.PanelRoleMentions.Replace(queryCtx, panelIdMap[panelId], roles); err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
-				return
+			if len(failedPanels) > 0 && utils.Contains(failedPanels, panelId) {
+				skippedItems = append(skippedItems, fmt.Sprintf("Panel Role Mentions (Panel: %d)", panelId))
+				continue
 			}
+			if err := dbclient.Client.PanelRoleMentions.Replace(queryCtx, panelIdMap[panelId], roles); err != nil {
+				failedPanelRoleMentions++
+			}
+		}
+
+		if failedPanelRoleMentions == 0 {
+			successfulItems = append(successfulItems, "Panel Role Mentions")
+		} else {
+			failedItems = append(failedItems, fmt.Sprintf("Panel Role Mentions (x%d)", failedPanelRoleMentions))
 		}
 
 		// Import Panel Teams
 		log.Logger.Info("Importing panel teams", zap.Uint64("guild", guildId))
+		failedPanelTeams := 0
 		for panelId, teams := range data.PanelTeams {
+			if len(failedPanels) > 0 && utils.Contains(failedPanels, panelId) {
+				skippedItems = append(skippedItems, fmt.Sprintf("Panel Teams (Panel: %d)", panelId))
+				continue
+			}
 			teamsToAdd := make([]int, len(teams))
 			for _, team := range teams {
 				teamsToAdd = append(teamsToAdd, supportTeamIdMap[team])
 			}
 
 			if err := dbclient.Client.PanelTeams.Replace(queryCtx, panelIdMap[panelId], teamsToAdd); err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
-				return
+				failedPanelTeams++
 			}
+		}
+
+		if failedPanelTeams == 0 {
+			successfulItems = append(successfulItems, "Panel Teams")
+		} else {
+			failedItems = append(failedItems, fmt.Sprintf("Panel Teams (x%d)", failedPanelTeams))
 		}
 
 		// Import Multi panels
 		log.Logger.Info("Importing multi panels", zap.Uint64("guild", guildId))
 		multiPanelIdMap := make(map[int]int)
-
+		failedMultiPanels := make([]int, 0)
 		for _, multiPanel := range data.MultiPanels {
 			multiPanelId, err := dbclient.Client.MultiPanels.Create(queryCtx, multiPanel)
 			if err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
-				return
+				failedMultiPanels = append(failedMultiPanels, multiPanel.Id)
+			} else {
+				log.Logger.Info("Imported multi panel", zap.Uint64("guild", guildId), zap.Int("multi_panel", multiPanel.Id), zap.Int("new_multi_panel", multiPanelId))
+				multiPanelIdMap[multiPanel.Id] = multiPanelId
 			}
+		}
 
-			multiPanelIdMap[multiPanel.Id] = multiPanelId
+		if len(failedMultiPanels) == 0 {
+			successfulItems = append(successfulItems, "Multi Panels")
+		} else {
+			failedItems = append(failedItems, fmt.Sprintf("Multi Panels (x%d)", len(failedMultiPanels)))
 		}
 
 		// Import Multi Panel Targets
 		log.Logger.Info("Importing multi panel targets", zap.Uint64("guild", guildId))
+		failedMultiPanelTargets := 0
 		for multiPanelId, panelIds := range data.MultiPanelTargets {
+			if len(failedMultiPanels) > 0 && utils.Contains(failedMultiPanels, multiPanelId) {
+				skippedItems = append(skippedItems, fmt.Sprintf("Multi Panel Targets (Multi Panel: %d)", multiPanelId))
+				continue
+			}
 			for _, panelId := range panelIds {
+				if len(failedPanels) > 0 && utils.Contains(failedPanels, panelId) {
+					skippedItems = append(skippedItems, fmt.Sprintf("Multi Panel Targets (Multi Panel: %d, Panel: %d)", multiPanelId, panelId))
+					continue
+				}
 				if err := dbclient.Client.MultiPanelTargets.Insert(queryCtx, multiPanelIdMap[multiPanelId], panelIdMap[panelId]); err != nil {
-					ctx.JSON(500, utils.ErrorJson(err))
-					return
+					failedMultiPanelTargets++
 				}
 			}
+		}
+
+		if failedMultiPanelTargets == 0 {
+			successfulItems = append(successfulItems, "Multi Panel Targets")
+		} else {
+			failedItems = append(failedItems, fmt.Sprintf("Multi Panel Targets (x%d)", failedMultiPanelTargets))
 		}
 
 		if data.Settings.ContextMenuPanel != nil {
@@ -676,8 +911,9 @@ func ImportHandler(ctx *gin.Context) {
 		// Import settings
 		log.Logger.Info("Importing settings", zap.Uint64("guild", guildId))
 		if err := dbclient.Client.Settings.Set(queryCtx, guildId, data.Settings); err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
-			return
+			failedItems = append(failedItems, "Settings")
+		} else {
+			successfulItems = append(successfulItems, "Settings")
 		}
 
 		ticketCount, err := dbclient.Client.Tickets.GetTotalTicketCount(queryCtx, guildId)
@@ -714,13 +950,16 @@ func ImportHandler(ctx *gin.Context) {
 				}
 
 				ticketIdMap[ticket.Id] = ticket.Id + ticketCount
+			} else {
+				skippedItems = append(skippedItems, fmt.Sprintf("Ticket (ID: %d)", ticket.Id))
 			}
 		}
 
 		log.Logger.Info("Importing tickets", zap.Uint64("guild", guildId))
 		if err := dbclient.Client2.Tickets.BulkImport(queryCtx, guildId, ticketsToCreate); err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
-			return
+			failedItems = append(failedItems, "Tickets")
+		} else {
+			successfulItems = append(successfulItems, "Tickets")
 		}
 
 		// Update the mapping
@@ -740,17 +979,30 @@ func ImportHandler(ctx *gin.Context) {
 			log.Logger.Info("Importing ticket messages", zap.Uint64("guild", guildId))
 			newMembersMap := make(map[int][]uint64)
 			for ticketId, members := range data.TicketAdditionalMembers {
+				if _, ok := ticketIdMap[ticketId]; !ok {
+					continue
+				}
+
 				newMembersMap[ticketIdMap[ticketId]] = members
 			}
-			// Remap ticket ids in data.TicketAdditionalMembers
-			err = dbclient.Client2.TicketMembers.ImportBulk(queryCtx, guildId, newMembersMap)
+
+			if err := dbclient.Client2.TicketMembers.ImportBulk(queryCtx, guildId, newMembersMap); err != nil {
+				failedItems = append(failedItems, "Ticket Additional Members")
+			} else {
+				successfulItems = append(successfulItems, "Ticket Additional Members")
+			}
+
 			return
 		})
 
 		// Import ticket last messages
 		ticketsExtrasGroup.Go(func() (err error) {
 			log.Logger.Info("Importing ticket last messages", zap.Uint64("guild", guildId))
+			failedLastMessages := 0
 			for _, msg := range data.TicketLastMessages {
+				if _, ok := ticketIdMap[msg.TicketId]; !ok {
+					continue
+				}
 				lastMessageId := uint64(0)
 				if msg.Data.LastMessageId != nil {
 					lastMessageId = *msg.Data.LastMessageId
@@ -766,7 +1018,15 @@ func ImportHandler(ctx *gin.Context) {
 					userIsStaff = *msg.Data.UserIsStaff
 				}
 
-				err = dbclient.Client.TicketLastMessage.Set(queryCtx, guildId, ticketIdMap[msg.TicketId], lastMessageId, userId, userIsStaff)
+				if err := dbclient.Client.TicketLastMessage.Set(queryCtx, guildId, ticketIdMap[msg.TicketId], lastMessageId, userId, userIsStaff); err != nil {
+					failedLastMessages++
+				}
+			}
+
+			if failedLastMessages == 0 {
+				successfulItems = append(successfulItems, "Ticket Last Messages")
+			} else {
+				failedItems = append(failedItems, fmt.Sprintf("Ticket Last Messages (x%d)", failedLastMessages))
 			}
 			return
 		})
@@ -775,10 +1035,17 @@ func ImportHandler(ctx *gin.Context) {
 			log.Logger.Info("Importing ticket claims", zap.Uint64("guild", guildId))
 			newClaimsMap := make(map[int]uint64)
 			for ticketId, user := range data.TicketClaims {
+				if _, ok := ticketIdMap[ticketId]; !ok {
+					continue
+				}
 				newClaimsMap[ticketIdMap[ticketId]] = user.Data
 			}
 
-			err = dbclient.Client2.TicketClaims.ImportBulk(queryCtx, guildId, newClaimsMap)
+			if err := dbclient.Client2.TicketClaims.ImportBulk(queryCtx, guildId, newClaimsMap); err != nil {
+				failedItems = append(failedItems, "Ticket Claims")
+			} else {
+				successfulItems = append(successfulItems, "Ticket Claims")
+			}
 			return
 		})
 
@@ -787,10 +1054,17 @@ func ImportHandler(ctx *gin.Context) {
 			log.Logger.Info("Importing ticket ratings", zap.Uint64("guild", guildId))
 			newRatingsMap := make(map[int]uint8)
 			for ticketId, rating := range data.ServiceRatings {
+				if _, ok := ticketIdMap[ticketId]; !ok {
+					continue
+				}
 				newRatingsMap[ticketIdMap[ticketId]] = uint8(rating.Data)
 			}
 
-			err = dbclient.Client2.ServiceRatings.ImportBulk(queryCtx, guildId, newRatingsMap)
+			if err := dbclient.Client2.ServiceRatings.ImportBulk(queryCtx, guildId, newRatingsMap); err != nil {
+				failedItems = append(failedItems, "Ticket Ratings")
+			} else {
+				successfulItems = append(successfulItems, "Ticket Ratings")
+			}
 			return
 		})
 
@@ -799,31 +1073,61 @@ func ImportHandler(ctx *gin.Context) {
 			log.Logger.Info("Importing ticket participants", zap.Uint64("guild", guildId))
 			newParticipantsMap := make(map[int][]uint64)
 			for ticketId, participants := range data.Participants {
+				if _, ok := ticketIdMap[ticketId]; !ok {
+					continue
+				}
 				newParticipantsMap[ticketIdMap[ticketId]] = participants
 			}
 
-			err = dbclient.Client2.Participants.ImportBulk(queryCtx, guildId, newParticipantsMap)
+			if err := dbclient.Client2.Participants.ImportBulk(queryCtx, guildId, newParticipantsMap); err != nil {
+				failedItems = append(failedItems, "Ticket Participants")
+			} else {
+				successfulItems = append(successfulItems, "Ticket Participants")
+			}
 			return
 		})
 
 		// Import First Response Times
 		ticketsExtrasGroup.Go(func() (err error) {
+			failedFirstResponseTimes := 0
 			log.Logger.Info("Importing first response times", zap.Uint64("guild", guildId))
 			for _, frt := range data.FirstResponseTimes {
-				err = dbclient.Client.FirstResponseTime.Set(queryCtx, guildId, frt.UserId, ticketIdMap[frt.TicketId], frt.ResponseTime)
+				if _, ok := ticketIdMap[frt.TicketId]; !ok {
+					continue
+				}
+				if err := dbclient.Client.FirstResponseTime.Set(queryCtx, guildId, frt.UserId, ticketIdMap[frt.TicketId], frt.ResponseTime); err != nil {
+					failedFirstResponseTimes++
+				}
+			}
+
+			if failedFirstResponseTimes == 0 {
+				successfulItems = append(successfulItems, "First Response Times")
+			} else {
+				failedItems = append(failedItems, fmt.Sprintf("First Response Times (x%d)", failedFirstResponseTimes))
 			}
 			return
 		})
 
 		ticketsExtrasGroup.Go(func() (err error) {
-			log.Logger.Info("Importing ticket notes", zap.Uint64("guild", guildId))
+			log.Logger.Info("Importing ticket survey responses", zap.Uint64("guild", guildId))
+			failedSurveyResponses := 0
 			for _, response := range data.ExitSurveyResponses {
-
+				if _, ok := ticketIdMap[response.TicketId]; !ok {
+					continue
+				}
 				resps := map[int]string{
 					*response.Data.QuestionId: *response.Data.Response,
 				}
 
-				err = dbclient.Client.ExitSurveyResponses.AddResponses(queryCtx, guildId, ticketIdMap[response.TicketId], formIdMap[*response.Data.FormId], resps)
+				if err := dbclient.Client.ExitSurveyResponses.AddResponses(queryCtx, guildId, ticketIdMap[response.TicketId], formIdMap[*response.Data.FormId], resps); err != nil {
+					failedSurveyResponses++
+				}
+			}
+
+			if failedSurveyResponses == 0 {
+				successfulItems = append(successfulItems, "Exit Survey Responses")
+			} else {
+				failedItems = append(failedItems, fmt.Sprintf("Exit Survey Responses (x%d)", failedSurveyResponses))
 			}
 			return
 		})
@@ -831,17 +1135,41 @@ func ImportHandler(ctx *gin.Context) {
 		// Import Close Reasons
 		ticketsExtrasGroup.Go(func() (err error) {
 			log.Logger.Info("Importing close reasons", zap.Uint64("guild", guildId))
+			failedCloseReasons := 0
 			for _, reason := range data.CloseReasons {
-				err = dbclient.Client.CloseReason.Set(queryCtx, guildId, ticketIdMap[reason.TicketId], reason.Data)
+				if _, ok := ticketIdMap[reason.TicketId]; !ok {
+					continue
+				}
+				if err := dbclient.Client.CloseReason.Set(queryCtx, guildId, ticketIdMap[reason.TicketId], reason.Data); err != nil {
+					failedCloseReasons++
+				}
+			}
+
+			if failedCloseReasons == 0 {
+				successfulItems = append(successfulItems, "Close Reasons")
+			} else {
+				failedItems = append(failedItems, fmt.Sprintf("Close Reasons (x%d)", failedCloseReasons))
 			}
 			return
 		})
 
 		// Import Autoclose Excluded Tickets
 		ticketsExtrasGroup.Go(func() (err error) {
+			failedAutocloseExcluded := 0
 			log.Logger.Info("Importing autoclose excluded tickets", zap.Uint64("guild", guildId))
 			for _, ticketId := range data.AutocloseExcluded {
-				err = dbclient.Client.AutoCloseExclude.Exclude(queryCtx, guildId, ticketIdMap[ticketId])
+				if _, ok := ticketIdMap[ticketId]; !ok {
+					continue
+				}
+				if err := dbclient.Client.AutoCloseExclude.Exclude(queryCtx, guildId, ticketIdMap[ticketId]); err != nil {
+					failedAutocloseExcluded++
+				}
+			}
+
+			if failedAutocloseExcluded == 0 {
+				successfulItems = append(successfulItems, "Autoclose Excluded Tickets")
+			} else {
+				failedItems = append(failedItems, fmt.Sprintf("Autoclose Excluded Tickets (x%d)", failedAutocloseExcluded))
 			}
 			return
 		})
@@ -849,18 +1177,30 @@ func ImportHandler(ctx *gin.Context) {
 		// Import Archive Messages
 		ticketsExtrasGroup.Go(func() (err error) {
 			log.Logger.Info("Importing archive messages", zap.Uint64("guild", guildId))
+			failedArchiveMessages := 0
 			for _, message := range data.ArchiveMessages {
-				err = dbclient.Client.ArchiveMessages.Set(queryCtx, guildId, ticketIdMap[message.TicketId], message.Data.ChannelId, message.Data.MessageId)
+				if _, ok := ticketIdMap[message.TicketId]; !ok {
+					continue
+				}
+				if err := dbclient.Client.ArchiveMessages.Set(queryCtx, guildId, ticketIdMap[message.TicketId], message.Data.ChannelId, message.Data.MessageId); err != nil {
+					failedArchiveMessages++
+				}
+			}
+
+			if failedArchiveMessages == 0 {
+				successfulItems = append(successfulItems, "Archive Messages")
+			} else {
+				failedItems = append(failedItems, fmt.Sprintf("Archive Messages (x%d)", failedArchiveMessages))
 			}
 			return
 		})
 
-		if err := ticketsExtrasGroup.Wait(); err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
-			return
-		}
-
+		_ = ticketsExtrasGroup.Wait()
 	}
 
-	ctx.JSON(200, utils.SuccessResponse)
+	ctx.JSON(200, map[string]interface{}{
+		"failed":  failedItems,
+		"success": successfulItems,
+		"skipped": skippedItems,
+	})
 }

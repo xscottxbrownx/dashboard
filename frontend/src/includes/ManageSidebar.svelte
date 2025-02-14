@@ -22,18 +22,12 @@
                 <ManageSidebarLink {currentRoute} title="Forms" icon="fa-poll-h" href="/manage/{guildId}/forms" />
                 <ManageSidebarLink {currentRoute} title="Staff Teams" icon="fa-users" href="/manage/{guildId}/teams" />
                 <ManageSidebarLink {currentRoute} title="Integrations" icon="fa-robot" href="/manage/{guildId}/integrations" />
+                <ManageSidebarLink {currentRoute} title="Import" icon="fa-file-import" href="/manage/{guildId}/import" />
             {/if}
 
             <ManageSidebarLink {currentRoute} title="Tickets" icon="fa-ticket-alt" href="/manage/{guildId}/tickets" />
             <ManageSidebarLink {currentRoute} title="Blacklist" icon="fa-ban" href="/manage/{guildId}/blacklist" />
             <ManageSidebarLink {currentRoute} title="Tags" icon="fa-tags" href="/manage/{guildId}/tags" />
-
-            <!-- {#if isAdmin}
-                <hr />
-                <div class="row" style="align-items: center; justify-content: center;">
-                <ManageSidebarButton on:click={() => importModal = true} title="Import Data" icon="fa-file-import" />
-            </div>
-            {/if} -->
         </ul>
     </nav>
     <nav class="bottom">
