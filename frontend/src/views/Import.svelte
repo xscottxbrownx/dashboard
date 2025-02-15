@@ -8,9 +8,9 @@
                 <form>
                     <div class="row">
                         <div class="col-4">
-                            <label class="form-label" for="import_data"
-                                >Data Export File (.zip)</label
-                            >
+                            <label class="form-label" for="import_data">
+                                Data Export File (.zip)
+                            </label>
                             <div class="col-1">
                                 <input
                                     type="file"
@@ -21,9 +21,9 @@
                             </div>
                         </div>
                         <div class="col-4">
-                            <label class="form-label" for="import_data"
-                                >Transcripts Export File (.zip)</label
-                            >
+                            <label class="form-label" for="import_transcripts">
+                                Transcripts Export File (.zip)
+                            </label>
                             <div class="col-1">
                                 <input
                                     type="file"
