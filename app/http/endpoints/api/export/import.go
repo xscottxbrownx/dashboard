@@ -922,7 +922,7 @@ func ImportHandler(ctx *gin.Context) {
 			return
 		}
 		ticketsToCreate := make([]database2.Ticket, len(data.Tickets))
-		ticketIdMap = make(map[int]int)
+		ticketIdMapTwo := make(map[int]int)
 
 		// Import tickets
 		for i, ticket := range data.Tickets {
@@ -949,7 +949,7 @@ func ImportHandler(ctx *gin.Context) {
 					NotesThreadId:    ticket.NotesThreadId,
 				}
 
-				ticketIdMap[ticket.Id] = ticket.Id + ticketCount
+				ticketIdMapTwo[ticket.Id] = ticket.Id + ticketCount
 			} else {
 				skippedItems = append(skippedItems, fmt.Sprintf("Ticket (ID: %d)", ticket.Id))
 			}
@@ -964,7 +964,7 @@ func ImportHandler(ctx *gin.Context) {
 
 		// Update the mapping
 		log.Logger.Info("Importing mapping for tickets", zap.Uint64("guild", guildId))
-		for area, m := range map[string]map[int]int{"ticket": ticketIdMap} {
+		for area, m := range map[string]map[int]int{"ticket": ticketIdMapTwo} {
 			for sourceId, targetId := range m {
 				if err := dbclient.Client2.ImportMappingTable.Set(queryCtx, guildId, area, sourceId, targetId); err != nil {
 					ctx.JSON(500, utils.ErrorJson(err))
@@ -976,7 +976,7 @@ func ImportHandler(ctx *gin.Context) {
 		ticketsExtrasGroup, _ := errgroup.WithContext(queryCtx)
 
 		ticketsExtrasGroup.Go(func() (err error) {
-			log.Logger.Info("Importing ticket messages", zap.Uint64("guild", guildId))
+			log.Logger.Info("Importing ticket members", zap.Uint64("guild", guildId))
 			newMembersMap := make(map[int][]uint64)
 			for ticketId, members := range data.TicketAdditionalMembers {
 				if _, ok := ticketIdMap[ticketId]; !ok {
@@ -998,35 +998,24 @@ func ImportHandler(ctx *gin.Context) {
 		// Import ticket last messages
 		ticketsExtrasGroup.Go(func() (err error) {
 			log.Logger.Info("Importing ticket last messages", zap.Uint64("guild", guildId))
-			failedLastMessages := 0
+			msgs := map[int]database2.TicketLastMessage{}
 			for _, msg := range data.TicketLastMessages {
 				if _, ok := ticketIdMap[msg.TicketId]; !ok {
 					continue
 				}
-				lastMessageId := uint64(0)
-				if msg.Data.LastMessageId != nil {
-					lastMessageId = *msg.Data.LastMessageId
-				}
 
-				userId := uint64(0)
-				if msg.Data.UserId != nil {
-					userId = *msg.Data.UserId
-				}
-
-				userIsStaff := false
-				if msg.Data.UserIsStaff != nil {
-					userIsStaff = *msg.Data.UserIsStaff
-				}
-
-				if err := dbclient.Client.TicketLastMessage.Set(queryCtx, guildId, ticketIdMap[msg.TicketId], lastMessageId, userId, userIsStaff); err != nil {
-					failedLastMessages++
+				msgs[ticketIdMap[msg.TicketId]] = database2.TicketLastMessage{
+					LastMessageId:   msg.Data.LastMessageId,
+					LastMessageTime: msg.Data.LastMessageTime,
+					UserId:          msg.Data.UserId,
+					UserIsStaff:     msg.Data.UserIsStaff,
 				}
 			}
 
-			if failedLastMessages == 0 {
-				successfulItems = append(successfulItems, "Ticket Last Messages")
+			if err := dbclient.Client2.TicketLastMessage.ImportBulk(queryCtx, guildId, msgs); err != nil {
+				failedItems = append(failedItems, "Ticket Last Messages")
 			} else {
-				failedItems = append(failedItems, fmt.Sprintf("Ticket Last Messages (x%d)", failedLastMessages))
+				successfulItems = append(successfulItems, "Ticket Last Messages")
 			}
 			return
 		})
@@ -1054,10 +1043,10 @@ func ImportHandler(ctx *gin.Context) {
 			log.Logger.Info("Importing ticket ratings", zap.Uint64("guild", guildId))
 			newRatingsMap := make(map[int]uint8)
 			for ticketId, rating := range data.ServiceRatings {
-				if _, ok := ticketIdMap[ticketId]; !ok {
+				if _, ok := ticketIdMapTwo[ticketId]; !ok {
 					continue
 				}
-				newRatingsMap[ticketIdMap[ticketId]] = uint8(rating.Data)
+				newRatingsMap[ticketIdMapTwo[ticketId]] = uint8(rating.Data)
 			}
 
 			if err := dbclient.Client2.ServiceRatings.ImportBulk(queryCtx, guildId, newRatingsMap); err != nil {
@@ -1073,10 +1062,10 @@ func ImportHandler(ctx *gin.Context) {
 			log.Logger.Info("Importing ticket participants", zap.Uint64("guild", guildId))
 			newParticipantsMap := make(map[int][]uint64)
 			for ticketId, participants := range data.Participants {
-				if _, ok := ticketIdMap[ticketId]; !ok {
+				if _, ok := ticketIdMapTwo[ticketId]; !ok {
 					continue
 				}
-				newParticipantsMap[ticketIdMap[ticketId]] = participants
+				newParticipantsMap[ticketIdMapTwo[ticketId]] = participants
 			}
 
 			if err := dbclient.Client2.Participants.ImportBulk(queryCtx, guildId, newParticipantsMap); err != nil {
@@ -1092,10 +1081,10 @@ func ImportHandler(ctx *gin.Context) {
 			failedFirstResponseTimes := 0
 			log.Logger.Info("Importing first response times", zap.Uint64("guild", guildId))
 			for _, frt := range data.FirstResponseTimes {
-				if _, ok := ticketIdMap[frt.TicketId]; !ok {
+				if _, ok := ticketIdMapTwo[frt.TicketId]; !ok {
 					continue
 				}
-				if err := dbclient.Client.FirstResponseTime.Set(queryCtx, guildId, frt.UserId, ticketIdMap[frt.TicketId], frt.ResponseTime); err != nil {
+				if err := dbclient.Client.FirstResponseTime.Set(queryCtx, guildId, frt.UserId, ticketIdMapTwo[frt.TicketId], frt.ResponseTime); err != nil {
 					failedFirstResponseTimes++
 				}
 			}
@@ -1112,14 +1101,14 @@ func ImportHandler(ctx *gin.Context) {
 			log.Logger.Info("Importing ticket survey responses", zap.Uint64("guild", guildId))
 			failedSurveyResponses := 0
 			for _, response := range data.ExitSurveyResponses {
-				if _, ok := ticketIdMap[response.TicketId]; !ok {
+				if _, ok := ticketIdMapTwo[response.TicketId]; !ok {
 					continue
 				}
 				resps := map[int]string{
 					*response.Data.QuestionId: *response.Data.Response,
 				}
 
-				if err := dbclient.Client.ExitSurveyResponses.AddResponses(queryCtx, guildId, ticketIdMap[response.TicketId], formIdMap[*response.Data.FormId], resps); err != nil {
+				if err := dbclient.Client.ExitSurveyResponses.AddResponses(queryCtx, guildId, ticketIdMapTwo[response.TicketId], formIdMap[*response.Data.FormId], resps); err != nil {
 					failedSurveyResponses++
 				}
 			}
@@ -1137,10 +1126,10 @@ func ImportHandler(ctx *gin.Context) {
 			log.Logger.Info("Importing close reasons", zap.Uint64("guild", guildId))
 			failedCloseReasons := 0
 			for _, reason := range data.CloseReasons {
-				if _, ok := ticketIdMap[reason.TicketId]; !ok {
+				if _, ok := ticketIdMapTwo[reason.TicketId]; !ok {
 					continue
 				}
-				if err := dbclient.Client.CloseReason.Set(queryCtx, guildId, ticketIdMap[reason.TicketId], reason.Data); err != nil {
+				if err := dbclient.Client.CloseReason.Set(queryCtx, guildId, ticketIdMapTwo[reason.TicketId], reason.Data); err != nil {
 					failedCloseReasons++
 				}
 			}
@@ -1158,10 +1147,10 @@ func ImportHandler(ctx *gin.Context) {
 			failedAutocloseExcluded := 0
 			log.Logger.Info("Importing autoclose excluded tickets", zap.Uint64("guild", guildId))
 			for _, ticketId := range data.AutocloseExcluded {
-				if _, ok := ticketIdMap[ticketId]; !ok {
+				if _, ok := ticketIdMapTwo[ticketId]; !ok {
 					continue
 				}
-				if err := dbclient.Client.AutoCloseExclude.Exclude(queryCtx, guildId, ticketIdMap[ticketId]); err != nil {
+				if err := dbclient.Client.AutoCloseExclude.Exclude(queryCtx, guildId, ticketIdMapTwo[ticketId]); err != nil {
 					failedAutocloseExcluded++
 				}
 			}
@@ -1179,10 +1168,10 @@ func ImportHandler(ctx *gin.Context) {
 			log.Logger.Info("Importing archive messages", zap.Uint64("guild", guildId))
 			failedArchiveMessages := 0
 			for _, message := range data.ArchiveMessages {
-				if _, ok := ticketIdMap[message.TicketId]; !ok {
+				if _, ok := ticketIdMapTwo[message.TicketId]; !ok {
 					continue
 				}
-				if err := dbclient.Client.ArchiveMessages.Set(queryCtx, guildId, ticketIdMap[message.TicketId], message.Data.ChannelId, message.Data.MessageId); err != nil {
+				if err := dbclient.Client.ArchiveMessages.Set(queryCtx, guildId, ticketIdMapTwo[message.TicketId], message.Data.ChannelId, message.Data.MessageId); err != nil {
 					failedArchiveMessages++
 				}
 			}
