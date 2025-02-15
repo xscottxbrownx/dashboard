@@ -116,7 +116,7 @@
     import Textarea from "../components/form/Textarea.svelte";
 
     import { setDefaultHeaders } from "../includes/Auth.svelte";
-    import { notifyError, notifySuccess } from "../js/util";
+    import { notify, notifyError, notifySuccess } from "../js/util";
     import axios from "axios";
     import { API_URL } from "../js/constants";
     setDefaultHeaders();
@@ -163,6 +163,14 @@
         }
 
         queryLoading = true;
+        setTimeout(() => {
+            if (queryLoading) {
+                notify(
+                    "Importing...",
+                    "Your data is taking longer than expected to import, you can safely navigate away from this page and check back later.",
+                );
+            }
+        }, 60 * 1000);
         const res = await axios.post(
             `${API_URL}/api/${guildId}/import`,
             frmData,
