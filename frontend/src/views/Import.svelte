@@ -159,6 +159,11 @@
             frmData.append("data_file", dataFileInput.files[0]);
         }
         if (transcriptFileInput.files.length > 0) {
+            if(transcriptFileInput.files[0].size > 100 * 1024 * 1024) {
+                transcriptFileInput.value = "";
+                notifyError("Transcript file is too large, please upload a file smaller than 100MB or wait until we support larger files.");
+                return;
+            }
             frmData.append("transcripts_file", transcriptFileInput.files[0]);
         }
 
