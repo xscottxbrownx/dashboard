@@ -139,9 +139,9 @@
         dispatch("close", {});
     }
 
+
     async function dispatchConfirm() {
         let dataFileInput = document.getElementById("import_data");
-
         let transcriptFileInput = document.getElementById("import_transcripts");
 
         if (
@@ -158,14 +158,6 @@
         if (dataFileInput.files.length > 0) {
             frmData.append("data_file", dataFileInput.files[0]);
         }
-        if (transcriptFileInput.files.length > 0) {
-            if(transcriptFileInput.files[0].size > 100 * 1024 * 1024) {
-                transcriptFileInput.value = "";
-                notifyError("Transcript file is too large, please upload a file smaller than 100MB or wait until we support larger files.");
-                return;
-            }
-            frmData.append("transcripts_file", transcriptFileInput.files[0]);
-        }
 
         queryLoading = true;
         setTimeout(() => {
@@ -176,24 +168,50 @@
                 );
             }
         }, 60 * 1000);
-        const res = await axios.post(
-            `${API_URL}/api/${guildId}/import`,
-            frmData,
-            {
+
+        if (transcriptFileInput.files.length > 0) {
+            const presignRes = await axios.get(`${API_URL}/api/${guildId}/import/presign`);
+            if (presignRes.status !== 200) {
+                notifyError(`Failed to upload transcripts: ${presignRes.data.error}`);
+                queryLoading = false;
+                return;
+            }
+            
+            await fetch(presignRes.data.url, {
+                method: "PUT",
+                body: transcriptFileInput.files[0],
                 headers: {
-                    "Content-Type": "multipart/form-data",
+                    "Content-Type": transcriptFileInput.files[0].type,
                 },
-            },
-        );
-        if (res.status !== 200) {
-            notifyError(`Failed to import settings: ${res.data.error}`);
-            queryLoading = false;
-            return;
+            }).then((res) => {
+                if (res.status !== 200) {
+                    notifyError(`Failed to upload transcripts: ${res.data.error}`);
+                    queryLoading = false;
+                    return;
+                }
+            });
+        }
+
+        if (dataFileInput.files.length > 0) {
+            const res = await axios.post(
+                `${API_URL}/api/${guildId}/import`,
+                frmData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                },
+            );
+            if (res.status !== 200) {
+                notifyError(`Failed to import settings: ${res.data.error}`);
+                queryLoading = false;
+                return;
+            }
+            dataReturned = true;
+            resData = res.data;
         }
 
         queryLoading = false;
-        dataReturned = true;
-        resData = res.data;
 
         dispatchClose();
         notifySuccess(

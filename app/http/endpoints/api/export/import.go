@@ -8,6 +8,8 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
+	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -32,6 +34,41 @@ import (
 //	func ImportHandler(ctx *gin.Context) {
 //		ctx.JSON(401, "This endpoint is disabled")
 //	}
+
+func PresignTranscriptURL(ctx *gin.Context) {
+	guildId, userId := ctx.Keys["guildid"].(uint64), ctx.Keys["userid"].(uint64)
+
+	botCtx, err := botcontext.ContextForGuild(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	guild, err := botCtx.GetGuild(context.Background(), guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	if guild.OwnerId != userId {
+		ctx.JSON(403, utils.ErrorStr("Only the server owner can import transcripts"))
+		return
+	}
+
+	// Presign URL
+	url, err := s3.S3Client.PresignHeader(ctx, "PUT", config.Conf.S3Import.Bucket, fmt.Sprintf("transcripts/%d.zip", guildId), time.Minute*1, url.Values{}, http.Header{
+		"Content-Type": []string{"application/x-zip-compressed"},
+	})
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	ctx.JSON(200, gin.H{
+		"url": url.String(),
+	})
+}
+
 func ImportHandler(ctx *gin.Context) {
 	// Return slices
 	successfulItems := make([]string, 0)
