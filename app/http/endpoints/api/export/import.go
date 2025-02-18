@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 
 	database2 "github.com/TicketsBot-cloud/database"
@@ -37,6 +38,19 @@ import (
 
 func PresignTranscriptURL(ctx *gin.Context) {
 	guildId, userId := ctx.Keys["guildid"].(uint64), ctx.Keys["userid"].(uint64)
+
+	// Get "file_size" query parameter
+	fileSize, err := strconv.ParseInt(ctx.Query("file_size"), 10, 64)
+	if err != nil {
+		ctx.JSON(400, utils.ErrorJson(err))
+		return
+	}
+
+	// Check if file is over 1GB
+	if fileSize > 1024*1024*1024 {
+		ctx.JSON(400, utils.ErrorStr("File size too large"))
+		return
+	}
 
 	botCtx, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
