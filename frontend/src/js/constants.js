@@ -1,5 +1,5 @@
-export const IMPORT_API_URL = env.IMPORT_API_URL || "http://localhost:8083"
-export const API_URL = env.API_URL || "http://localhost:8081"
+export const IMPORT_API_URL = env.IMPORT_API_URL || "https://import-api.ticketsbot.cloud"
+export const API_URL = env.API_URL || "https://api.ticketsbot.cloud"
 export const PLACEHOLDER_DOCS_URL = "https://docs.ticketsbot.cloud/setup/placeholders.html"
 
 export const OAUTH = {
