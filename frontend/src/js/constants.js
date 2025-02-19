@@ -1,4 +1,4 @@
-export const IMPORT_API_URL = env.IMPORT_API_URL || "https://import-api.ticketsbot.cloud"
+export const IMPORT_URL = env.IMPORT_URL || "https://import-api.ticketsbot.cloud"
 export const API_URL = env.API_URL || "https://api.ticketsbot.cloud"
 export const PLACEHOLDER_DOCS_URL = "https://docs.ticketsbot.cloud/setup/placeholders.html"
 
