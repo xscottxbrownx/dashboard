@@ -118,7 +118,7 @@
     import { setDefaultHeaders } from "../includes/Auth.svelte";
     import { notify, notifyError, notifySuccess } from "../js/util";
     import axios from "axios";
-    import { API_URL } from "../js/constants";
+    import { IMPORT_API_URL } from "../js/constants";
     setDefaultHeaders();
 
     export let currentRoute;
@@ -170,7 +170,7 @@
         }, 60 * 1000);
 
         if (transcriptFileInput.files.length > 0) {
-            const presignRes = await axios.get(`${API_URL}/api/${guildId}/import/presign?file_size=${transcriptFileInput.files[0].size}`);
+            const presignRes = await axios.get(`${IMPORT_API_URL}/api/${guildId}/import/presign?file_size=${transcriptFileInput.files[0].size}`);
             if (presignRes.status !== 200) {
                 notifyError(`Failed to upload transcripts: ${presignRes.data.error}`);
                 queryLoading = false;
@@ -196,7 +196,7 @@
 
         if (dataFileInput.files.length > 0) {
             const res = await axios.post(
-                `${API_URL}/api/${guildId}/import`,
+                `${IMPORT_API_URL}/api/${guildId}/import`,
                 frmData,
                 {
                     headers: {
