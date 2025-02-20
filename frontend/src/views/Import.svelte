@@ -54,53 +54,9 @@
 
             {#if dataReturned}
             <div class="section">
-                <h2 class="section-title">Import Results</h2>
+                <h2 class="section-title">Import Files Uploaded</h2>
                 <div class="row">
-                    <p style="text-align: center;">Transcripts will be loaded in a separate request, and may take a few days to appear.</p>
-                {#if resData.success.length > 0}
-                <div class="col-3">
-                    <div class="row">
-                        <h3>Successful</h3>
-                    </div>
-                    <div class="row">
-                        <!-- <ul style="color: lightgreen;"> -->
-                        <ul>
-                            {#each resData.success as item}
-                                <li><i class="fa-solid fa-check"></i> {item}</li>
-                            {/each}
-                        </ul>
-                    </div>
-                </div>
-                {/if}
-                {#if resData.failed.length > 0}
-                <div class="col-3">
-                    <div class="row">
-                        <h3>Failed</h3>
-                    </div>
-                    <div class="row">
-                        <!-- <ul style="color: #ff7f7f;"> -->
-                         <ul>
-                            {#each resData.failed as item}
-                                <li><i class="fa-solid fa-xmark"></i> {item}</li>
-                            {/each}
-                        </ul>
-                    </div>
-                </div>
-                {/if}
-                {#if resData.skipped.length > 0}
-                <div class="col-3">
-                    <div class="row">
-                        <h3>Skipped</h3>
-                    </div>
-                    <div class="row">
-                        <ul>
-                            {#each resData.skipped as item}
-                                <li><i class="fa-solid fa-minus"></i> {item}</li>
-                            {/each}
-                        </ul>
-                    </div>
-                </div>
-                {/if}
+                    <p style="text-align: center;">Your Data & Transcripts have been placed in a queue and may take a few days to appear.</p>
                 </div>
             </div>
             {/if}
@@ -118,18 +74,13 @@
     import { setDefaultHeaders } from "../includes/Auth.svelte";
     import { notify, notifyError, notifySuccess } from "../js/util";
     import axios from "axios";
-    import { IMPORT_URL } from "../js/constants";
+    import { API_URL } from "../js/constants";
     setDefaultHeaders();
 
     export let currentRoute;
     let guildId = currentRoute.namedParams.id
 
     let dataReturned = false;
-    let resData = {
-        success: [],
-        failed: [],
-        skipped: [],
-    };
 
     let queryLoading = false;
 
@@ -163,21 +114,21 @@
         setTimeout(() => {
             if (queryLoading) {
                 notify(
-                    "Importing...",
-                    "Your data is taking longer than expected to import, if you uploaded transcripts, please wait until you get an import successful message before navigating away from this page.",
+                    "Uploading...",
+                    "Your files are still uploading, please wait whilst they are processed.",
                 );
             }
         }, 60 * 1000);
 
         if (transcriptFileInput.files.length > 0) {
-            const presignRes = await axios.get(`${IMPORT_URL}/api/${guildId}/import/presign?file_size=${transcriptFileInput.files[0].size}`);
-            if (presignRes.status !== 200) {
-                notifyError(`Failed to upload transcripts: ${presignRes.data.error}`);
+            const presignTranscriptRes = await axios.get(`${IMPORT_URL}/api/${guildId}/import/presign?file_size=${transcriptFileInput.files[0].size}&file_type=transcripts`);
+            if (presignTranscriptRes.status !== 200) {
+                notifyError(`Failed to upload transcripts: ${presignTranscriptRes.data.error}`);
                 queryLoading = false;
                 return;
             }
             
-            await fetch(presignRes.data.url, {
+            await fetch(presignTranscriptRes.data.url, {
                 method: "PUT",
                 body: transcriptFileInput.files[0],
                 headers: {
@@ -190,35 +141,40 @@
                     return;
                 }
 
-                notifySuccess("Transcripts uploaded successfully");
+                dataReturned = true;
+                notifySuccess("Transcripts uploaded successfully - They has now been placed in a queue and will be processed over the next few days.");
             });
         }
 
         if (dataFileInput.files.length > 0) {
-            const res = await axios.post(
-                `${IMPORT_URL}/api/${guildId}/import`,
-                frmData,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                },
-            );
-            if (res.status !== 200) {
-                notifyError(`Failed to import settings: ${res.data.error}`);
+            const presignDataRes = await axios.get(`${IMPORT_URL}/api/${guildId}/import/presign?file_size=${dataFileInput.files[0].size}&file_type=data`);
+            if (presignDataRes.status !== 200) {
+                notifyError(`Failed to upload data: ${presignDataRes.data.error}`);
                 queryLoading = false;
                 return;
             }
-            dataReturned = true;
-            resData = res.data;
+            
+            await fetch(presignDataRes.data.url, {
+                method: "PUT",
+                body: dataFileInput.files[0],
+                headers: {
+                    "Content-Type": dataFileInput.files[0].type,
+                },
+            }).then((res) => {
+                if (res.status !== 200) {
+                    notifyError(`Failed to upload data: ${res.data.error}`);
+                    queryLoading = false;
+                    return;
+                }
+
+                dataReturned = true;
+                notifySuccess("Data uploaded successfully - It has now been placed in a queue and will be processed over the next few days.");
+            });
         }
 
         queryLoading = false;
 
         dispatchClose();
-        notifySuccess(
-            "Imported settings successfully - Your transcripts will be processed separately and may take some time to appear.",
-        );
     }
 
     function handleKeydown(e) {
@@ -226,6 +182,7 @@
             dispatchClose();
         }
     }
+    
 </script>
 <style>
     .content {

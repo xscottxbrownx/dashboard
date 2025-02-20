@@ -58,10 +58,11 @@ type Config struct {
 	} `envPrefix:"CACHE_"`
 	SecureProxyUrl string `env:"SECURE_PROXY_URL"`
 	S3Import       struct {
-		Endpoint  string `env:"ENDPOINT,required"`
-		AccessKey string `env:"ACCESS_KEY,required"`
-		SecretKey string `env:"SECRET_KEY,required"`
-		Bucket    string `env:"BUCKET,required"`
+		Endpoint         string `env:"ENDPOINT,required"`
+		AccessKey        string `env:"ACCESS_KEY,required"`
+		SecretKey        string `env:"SECRET_KEY,required"`
+		TranscriptBucket string `env:"TRANSCRIPT_BUCKET,required"`
+		DataBucket       string `env:"DATA_BUCKET,required"`
 	} `envPrefix:"S3_IMPORT_"`
 }
 
