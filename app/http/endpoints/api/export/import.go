@@ -71,7 +71,7 @@ func PresignURL(ctx *gin.Context) {
 	}
 
 	// Presign URL
-	url, err := s3.S3Client.PresignHeader(ctx, "PUT", bucketName, fmt.Sprintf("%s/%d.zip", file_type, guildId), time.Minute*1, url.Values{}, http.Header{
+	url, err := s3.S3Client.PresignHeader(ctx, "PUT", bucketName, fmt.Sprintf("%s/%d.zip", file_type, guildId), time.Minute*10, url.Values{}, http.Header{
 		"Content-Type": []string{"application/x-zip-compressed"},
 	})
 	if err != nil {
