@@ -108,6 +108,7 @@ func GetRuns(ctx *gin.Context) {
 
 	if len(runs) == 0 {
 		ctx.JSON(200, []interface{}{})
+		return
 	}
 
 	ctx.JSON(200, runs)
