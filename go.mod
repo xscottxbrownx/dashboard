@@ -1,13 +1,13 @@
 module github.com/TicketsBot/GoPanel
 
-go 1.22.6
+go 1.23.0
 
 // replace github.com/TicketsBot-cloud/database => ../database
 
 require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/TicketsBot-cloud/archiverclient v0.0.0-20250206203822-d4f91573ad70
-	github.com/TicketsBot-cloud/database v0.0.0-20250215204312-d433be0833c9
+	github.com/TicketsBot-cloud/database v0.0.0-20250223085944-0d225910c655
 	github.com/TicketsBot/common v0.0.0-20241117150316-ff54c97b45c1
 	github.com/TicketsBot/database v0.0.0-20250205194156-c8239ae6eb4e
 	github.com/TicketsBot/logarchiver v0.0.0-20241012220745-5f3ba17a5138
@@ -122,7 +122,7 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
+	golang.org/x/crypto v0.34.0 // indirect
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect

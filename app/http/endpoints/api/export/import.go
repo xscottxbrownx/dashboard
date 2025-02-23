@@ -10,6 +10,7 @@ import (
 
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/config"
+	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/s3"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
@@ -81,6 +82,35 @@ func PresignURL(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{
 		"url": url.String(),
 	})
+}
+
+func GetRuns(ctx *gin.Context) {
+	guildId, userId := ctx.Keys["guildid"].(uint64), ctx.Keys["userid"].(uint64)
+
+	botCtx, err := botcontext.ContextForGuild(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	guild, err := botCtx.GetGuild(context.Background(), guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	if guild.OwnerId != userId {
+		ctx.JSON(403, utils.ErrorStr("Only the server owner can import data"))
+		return
+	}
+
+	runs, err := dbclient.Client2.ImportLogs.GetRuns(ctx, guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	ctx.JSON(200, runs)
 }
 
 func ImportHandler(ctx *gin.Context) {

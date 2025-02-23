@@ -52,6 +52,41 @@
                 </form>
             </div>
 
+            {#if runs.length > 0}
+            <div class="section">
+                <h2 class="section-title">Runs</h2>
+                {#each runs as run}
+                <Collapsible tooltip="View your logs for this run">
+                    <span slot="header" class="header">Run #{run.run_id} - {new Date(run.date).toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric", hour: "2-digit", minute: "2-digit"})}</span>
+                    <div slot="content" class="col-1">
+                      <table class="nice">
+                        <thead>
+                        <tr>
+                            <th>Log Id</th>
+                            <th>Log Status</th>
+                            <th>Entity Type</th>
+                            <th>Message</th>
+                            <th>Date</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                          {#each run?.logs as log}
+                          <tr>
+                            <td>{log.run_log_id}</td>
+                            <td>{log.log_type}</td>
+                            <td>{log.entity_type ?? "N/A"}</td>
+                            <td>{log.message ?? "N/A"}</td>
+                            <td>{new Date(log.date).toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric", hour: "2-digit", minute: "2-digit"})}</td>
+                          </tr>
+                          {/each}
+                        </tbody>
+                    </table>
+                    </div>
+                  </Collapsible>
+                {/each}
+            </div>
+            {/if}
+
             {#if dataReturned}
             <div class="section">
                 <h2 class="section-title">Import Files Uploaded</h2>
@@ -75,6 +110,7 @@
     import { notify, notifyError, notifySuccess } from "../js/util";
     import axios from "axios";
     import { API_URL } from "../js/constants";
+    import Collapsible from "../components/Collapsible.svelte";
     setDefaultHeaders();
 
     export let currentRoute;
@@ -84,11 +120,22 @@
 
     let queryLoading = false;
 
+    let runs = [];
+
     const dispatch = createEventDispatcher();
 
     function dispatchClose() {
         dispatch("close", {});
     }
+
+    axios.get(`${API_URL}/api/${guildId}/import/runs`).then((res) => {
+        if (res.status !== 200) {
+            notifyError(`Failed to get import runs: ${res.data.error}`);
+            return;
+        }
+
+        runs = res.data;
+    });
 
 
     async function dispatchConfirm() {
