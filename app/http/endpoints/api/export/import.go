@@ -8,11 +8,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/config"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/s3"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/common/permission"
 	"github.com/gin-gonic/gin"
 )
 
@@ -87,20 +89,14 @@ func PresignURL(ctx *gin.Context) {
 func GetRuns(ctx *gin.Context) {
 	guildId, userId := ctx.Keys["guildid"].(uint64), ctx.Keys["userid"].(uint64)
 
-	botCtx, err := botcontext.ContextForGuild(guildId)
+	permissionLevel, err := utils.GetPermissionLevel(ctx, guildId, userId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = ctx.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	guild, err := botCtx.GetGuild(context.Background(), guildId)
-	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
-		return
-	}
-
-	if guild.OwnerId != userId {
-		ctx.JSON(403, utils.ErrorStr("Only the server owner can import data"))
+	if permissionLevel < permission.Admin {
+		ctx.JSON(403, utils.ErrorStr("You do not have permission to view import logs"))
 		return
 	}
 
