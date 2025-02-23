@@ -190,6 +190,9 @@
 
                 dataReturned = true;
                 notifySuccess("Transcripts uploaded successfully - They has now been placed in a queue and will be processed over the next few days.");
+            }).catch((e) => {
+                notifyError(`Failed to upload transcripts: ${e}`);
+                queryLoading = false;
             });
         }
 
@@ -216,6 +219,9 @@
 
                 dataReturned = true;
                 notifySuccess("Data uploaded successfully - It has now been placed in a queue and will be processed over the next few days.");
+            }).catch((e) => {
+                notifyError(`Failed to upload data: ${e}`);
+                queryLoading = false;
             });
         }
 
