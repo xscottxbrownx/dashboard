@@ -76,7 +76,7 @@
                             <td>{log.log_type}</td>
                             <td>{log.entity_type ?? "N/A"}</td>
                             <td>{log.message ?? "N/A"}</td>
-                            <td>{new Date(log.date).toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric", hour: "2-digit", minute: "2-digit"})}</td>
+                            <td>{new Date(log.date).toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric", hour: "2-digit", minute: "2-digit", second: "2-digit"})}</td>
                           </tr>
                           {/each}
                         </tbody>
