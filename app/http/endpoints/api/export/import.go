@@ -49,6 +49,18 @@ func PresignURL(ctx *gin.Context) {
 		return
 	}
 
+	fileContentType := ctx.Query("file_content_type")
+
+	if fileContentType == "" {
+		ctx.JSON(400, utils.ErrorStr("Missing file_content_type"))
+		return
+	}
+
+	if fileContentType != "application/zip" && fileContentType != "application/x-zip-compressed" {
+		ctx.JSON(400, utils.ErrorStr("Invalid file_content_type"))
+		return
+	}
+
 	// Check if file is over 1GB
 	if fileSize > 1024*1024*1024 {
 		ctx.JSON(400, utils.ErrorStr("File size too large"))
@@ -74,7 +86,7 @@ func PresignURL(ctx *gin.Context) {
 
 	// Presign URL
 	url, err := s3.S3Client.PresignHeader(ctx, "PUT", bucketName, fmt.Sprintf("%s/%d.zip", file_type, guildId), time.Minute*10, url.Values{}, http.Header{
-		"Content-Type": []string{"application/x-zip-compressed"},
+		"Content-Type": []string{fileContentType},
 	})
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))

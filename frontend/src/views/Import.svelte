@@ -168,7 +168,7 @@
         }, 60 * 1000);
 
         if (transcriptFileInput.files.length > 0) {
-            const presignTranscriptRes = await axios.get(`${API_URL}/api/${guildId}/import/presign?file_size=${transcriptFileInput.files[0].size}&file_type=transcripts`);
+            const presignTranscriptRes = await axios.get(`${API_URL}/api/${guildId}/import/presign?file_size=${transcriptFileInput.files[0].size}&file_type=transcripts&file_content_type=${transcriptFileInput.files[0].type}`);
             if (presignTranscriptRes.status !== 200) {
                 notifyError(`Failed to upload transcripts: ${presignTranscriptRes.data.error}`);
                 queryLoading = false;
@@ -197,7 +197,7 @@
         }
 
         if (dataFileInput.files.length > 0) {
-            const presignDataRes = await axios.get(`${API_URL}/api/${guildId}/import/presign?file_size=${dataFileInput.files[0].size}&file_type=data`);
+            const presignDataRes = await axios.get(`${API_URL}/api/${guildId}/import/presign?file_size=${dataFileInput.files[0].size}&file_type=data&file_content_type=${dataFileInput.files[0].type}`);
             if (presignDataRes.status !== 200) {
                 notifyError(`Failed to upload data: ${presignDataRes.data.error}`);
                 queryLoading = false;
