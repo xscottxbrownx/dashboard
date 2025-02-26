@@ -57,7 +57,7 @@
                 <h2 class="section-title">Runs</h2>
                 {#each runs as run}
                 <Collapsible tooltip="View your logs for this run">
-                    <span slot="header" class="header">Run #{run.run_id} - {new Date(run.date).toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric", hour: "2-digit", minute: "2-digit"})}</span>
+                    <span slot="header" class="header">{run.run_type} Run #{run.run_id} - {new Date(run.date).toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric", hour: "2-digit", minute: "2-digit"})}</span>
                     <div slot="content" class="col-1">
                       <table class="nice">
                         <thead>
