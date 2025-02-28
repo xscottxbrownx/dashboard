@@ -1,3 +1,6 @@
+{#if importModal}
+  <ImportModal guildId={guildId} on:close={() => importModal = false}/>
+{/if}
 <section class="sidebar">
     <header>
         <img src="{iconUrl}" class="guild-icon" alt="Guild icon" width="50" height="50" on:error={handleIconLoadError} />
@@ -19,6 +22,7 @@
                 <ManageSidebarLink {currentRoute} title="Forms" icon="fa-poll-h" href="/manage/{guildId}/forms" />
                 <ManageSidebarLink {currentRoute} title="Staff Teams" icon="fa-users" href="/manage/{guildId}/teams" />
                 <ManageSidebarLink {currentRoute} title="Integrations" icon="fa-robot" href="/manage/{guildId}/integrations" />
+                <ManageSidebarLink {currentRoute} title="Import" icon="fa-file-import" href="/manage/{guildId}/import" />
             {/if}
 
             <ManageSidebarLink {currentRoute} title="Tickets" icon="fa-ticket-alt" href="/manage/{guildId}/tickets" />
@@ -93,11 +97,16 @@
     import {notifyError, withLoadingScreen} from "../js/util";
     import {getIconUrl, getDefaultIcon} from "../js/icons";
     import ManageSidebarLink from "./ManageSidebarLink.svelte";
+    import ManageSidebarButton from "./ManageSidebarButton.svelte";
     import SubNavigation from "./SubNavigation.svelte";
     import SubNavigationLink from "./SubNavigationLink.svelte";
 
+    import ImportModal from "../components/manage/ImportModal.svelte";
+
     export let currentRoute;
     export let permissionLevel;
+
+    let importModal = false;
 
     $: isAdmin = permissionLevel >= 2;
 

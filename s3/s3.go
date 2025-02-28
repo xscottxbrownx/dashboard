@@ -1,0 +1,23 @@
+package s3
+
+import (
+	"log"
+
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
+)
+
+var S3Client *minio.Client
+
+func ConnectS3(endpoint, accessKey, secretKey string) {
+	// Initialize minio client object.
+	minioClient, err := minio.New(endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
+		Secure: true,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	S3Client = minioClient
+}

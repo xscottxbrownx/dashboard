@@ -14,7 +14,8 @@
             </div>
 
             <Dropdown col2 label="Sort Tickets By..." bind:value={sortMethod}>
-                <option value="id_desc">Ticket ID (Descending)</option>
+                <option value="id_asc">Ticket ID (Ascending) / Oldest First</option>
+                <option value="id_desc">Ticket ID (Descending) / Newest First</option>
                 <option value="unclaimed">Unclaimed & Awaiting Response First</option>
             </Dropdown>
 
@@ -138,7 +139,9 @@
         });
 
         // Apply sort
-        if (sortMethod === 'id_desc') {
+        if (sortMethod === "id_asc") {
+            filtered.sort((a, b) => a.id - b.id);
+        } else if (sortMethod === "id_desc") {
             filtered.sort((a, b) => b.id - a.id);
         } else if (sortMethod === 'unclaimed') {
             filtered.sort((a, b) => {

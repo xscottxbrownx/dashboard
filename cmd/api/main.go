@@ -2,15 +2,20 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/pprof"
+
+	"github.com/TicketsBot-cloud/archiverclient"
 	app "github.com/TicketsBot/GoPanel/app/http"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/api/ticket/livechat"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/log"
 	"github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/GoPanel/s3"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/archiverclient"
 	"github.com/TicketsBot/common/chatrelay"
 	"github.com/TicketsBot/common/model"
 	"github.com/TicketsBot/common/observability"
@@ -21,9 +26,11 @@ import (
 	"github.com/rxdn/gdl/rest/request"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"net/http"
-	"net/http/pprof"
+
+	_ "github.com/joho/godotenv/autoload"
 )
+
+var Logger *zap.Logger
 
 func main() {
 	startPprof()
@@ -68,11 +75,16 @@ func main() {
 		panic(fmt.Errorf("failed to initialise zap logger: %w", err))
 	}
 
+	log.Logger = logger
+
 	logger.Info("Connecting to database")
 	database.ConnectToDatabase()
 
 	logger.Info("Connecting to cache")
 	cache.Instance = cache.NewCache()
+
+	logger.Info("Connecting to import S3")
+	s3.ConnectS3(config.Conf.S3Import.Endpoint, config.Conf.S3Import.AccessKey, config.Conf.S3Import.SecretKey)
 
 	logger.Info("Initialising microservice clients")
 	utils.ArchiverClient = archiverclient.NewArchiverClient(archiverclient.NewProxyRetriever(config.Conf.Bot.ObjectStore), []byte(config.Conf.Bot.AesKey))
