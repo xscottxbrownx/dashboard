@@ -197,7 +197,7 @@
                 }
 
                 dataReturned = true;
-                notifySuccess("Transcripts uploaded successfully - They has now been placed in a queue and will be processed over the next few days.");
+                notifySuccess("Transcripts uploaded successfully - They have now been placed in a queue and will be processed over the next few days.");
             }).catch((e) => {
                 notifyError(`Failed to upload transcripts: ${e}`);
                 queryLoading = false;
