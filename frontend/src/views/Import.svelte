@@ -54,7 +54,7 @@
 
             {#if runs.length > 0}
             <div class="section">
-                <h2 class="section-title">Runs</h2>
+                <h2 class="section-title">Runs <span style="font-size: 12px; font-style: italic;">(Refreshes every 30 seconds)</span></h2>
                 {#each runs as run}
                 <Collapsible tooltip="View your logs for this run">
                     <span slot="header" class="header">{run.run_type} Run #{run.run_id} - {new Date(run.date).toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric", hour: "2-digit", minute: "2-digit"})}</span>
@@ -128,14 +128,22 @@
         dispatch("close", {});
     }
 
-    axios.get(`${API_URL}/api/${guildId}/import/runs`).then((res) => {
-        if (res.status !== 200) {
-            notifyError(`Failed to get import runs: ${res.data.error}`);
-            return;
-        }
+    function getRuns() {
+        axios.get(`${API_URL}/api/${guildId}/import/runs`).then((res) => {
+            if (res.status !== 200) {
+                notifyError(`Failed to get import runs: ${res.data.error}`);
+                return;
+            }
 
-        runs = res.data;
-    });
+            runs = res.data;
+        }); 
+    }
+
+    getRuns();
+
+    setInterval(() => {
+        getRuns();
+    }, 30 * 1000);
 
 
     async function dispatchConfirm() {
