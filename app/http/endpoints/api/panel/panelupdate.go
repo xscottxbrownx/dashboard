@@ -241,12 +241,15 @@ func UpdatePanel(c *gin.Context) {
 	// insert mention data
 	validRoles := utils.ToSet(utils.Map(roles, utils.RoleToId))
 
-	// string is role ID or "user" to mention the ticket opener
+	// string is role ID or "user" to mention the ticket opener  or "here" to mention @here
 	var shouldMentionUser bool
+	var shouldMentionHere bool
 	var roleMentions []uint64
 	for _, mention := range data.Mentions {
 		if mention == "user" {
 			shouldMentionUser = true
+		} else if mention == "here" {
+			shouldMentionHere = true
 		} else {
 			roleId, err := strconv.ParseUint(mention, 10, 64)
 			if err != nil {
@@ -266,6 +269,10 @@ func UpdatePanel(c *gin.Context) {
 		}
 
 		if err := dbclient.Client.PanelUserMention.SetWithTx(c, tx, panel.PanelId, shouldMentionUser); err != nil {
+			return err
+		}
+
+		if err := dbclient.Client.PanelHereMention.SetWithTx(c, tx, panel.PanelId, shouldMentionHere); err != nil {
 			return err
 		}
 
