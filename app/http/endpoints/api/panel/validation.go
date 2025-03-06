@@ -167,7 +167,7 @@ func validateEmoji(c PanelValidationContext) validation.ValidationFunc {
 	}
 }
 
-var urlRegex = regexp.MustCompile(`^https?://([-a-zA-Z0-9@:%._+~#=]{1,256})\.[a-zA-Z0-9()]{1,63}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*\.(?:gif|jpg|jpeg|png|webp))$`)
+var urlRegex = regexp.MustCompile(`^https?://(?:([-a-zA-Z0-9@:%._+~#=]{1,256})\.[a-zA-Z0-9()]{1,63}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*\.(?:gif|jpg|jpeg|png|webp)(\?.*)?)|drive\.google\.com/file/d/.*)$`)
 
 func validateNullableUrl(url *string) validation.ValidationFunc {
 	return func() error {
