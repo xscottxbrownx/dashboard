@@ -9,7 +9,7 @@ import (
 type HexColour int
 
 func (h HexColour) Int() int {
-    return int(h)
+	return int(h)
 }
 
 func (h HexColour) MarshalJSON() ([]byte, error) {
@@ -23,12 +23,12 @@ func (h *HexColour) UnmarshalJSON(data []byte) error {
 
 	i, err := strconv.ParseInt(str, 16, 32)
 	if err != nil {
-        return err
-    }
+		return err
+	}
 
 	if i < 0 || i > 0xFFFFFF {
-        return fmt.Errorf("invalid hex colour: %s", str)
-    }
+		return fmt.Errorf("invalid hex colour: %s", str)
+	}
 
 	*h = HexColour(i)
 	return nil

@@ -1,14 +1,15 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/app"
-	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/redis"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/common/statusupdates"
+	"net/http"
+
+	"github.com/TicketsBot-cloud/common/statusupdates"
+	"github.com/TicketsBot-cloud/dashboard/app"
+	"github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/redis"
+	"github.com/TicketsBot-cloud/dashboard/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/user"
-	"net/http"
 )
 
 type statusUpdateBody struct {

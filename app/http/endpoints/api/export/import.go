@@ -8,13 +8,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/TicketsBot/GoPanel/app"
-	"github.com/TicketsBot/GoPanel/botcontext"
-	"github.com/TicketsBot/GoPanel/config"
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/s3"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/common/permission"
+	"github.com/TicketsBot-cloud/common/permission"
+	"github.com/TicketsBot-cloud/dashboard/app"
+	"github.com/TicketsBot-cloud/dashboard/botcontext"
+	"github.com/TicketsBot-cloud/dashboard/config"
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/s3"
+	"github.com/TicketsBot-cloud/dashboard/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -112,7 +112,7 @@ func GetRuns(ctx *gin.Context) {
 		return
 	}
 
-	runs, err := dbclient.Client2.ImportLogs.GetRuns(ctx, guildId)
+	runs, err := dbclient.Client.ImportLogs.GetRuns(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

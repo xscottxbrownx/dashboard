@@ -3,19 +3,20 @@ package api
 import (
 	"errors"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/botcontext"
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/rpc"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/GoPanel/utils/types"
-	"github.com/TicketsBot/common/premium"
-	"github.com/TicketsBot/database"
+	"regexp"
+	"strings"
+
+	"github.com/TicketsBot-cloud/common/premium"
+	"github.com/TicketsBot-cloud/dashboard/botcontext"
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/rpc"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/TicketsBot-cloud/dashboard/utils/types"
+	"github.com/TicketsBot-cloud/database"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/rxdn/gdl/objects/interaction"
 	"github.com/rxdn/gdl/rest"
-	"regexp"
-	"strings"
 )
 
 type tag struct {

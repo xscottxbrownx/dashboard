@@ -2,14 +2,15 @@ package api
 
 import (
 	"context"
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/database"
+	"time"
+
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/TicketsBot-cloud/database"
 	"github.com/TicketsBot/worker/bot/customisation"
 	"github.com/TicketsBot/worker/i18n"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
-	"time"
 )
 
 type (

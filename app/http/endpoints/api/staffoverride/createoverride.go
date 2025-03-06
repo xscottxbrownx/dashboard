@@ -2,10 +2,11 @@ package api
 
 import (
 	"fmt"
-	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/gin-gonic/gin"
 	"time"
+
+	"github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/gin-gonic/gin"
 )
 
 type createOverrideBody struct {

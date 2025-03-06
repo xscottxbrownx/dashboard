@@ -26,6 +26,6 @@ func (w CustomWriter) Write(b []byte) (int, error) {
 	return w.ResponseWriter.Write(b)
 }
 
-func (w *CustomWriter) Read() []byte  {
+func (w *CustomWriter) Read() []byte {
 	return w.body.Bytes()
 }

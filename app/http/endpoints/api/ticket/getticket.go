@@ -2,20 +2,21 @@ package api
 
 import (
 	"context"
-	"github.com/TicketsBot/GoPanel/app"
-	"github.com/TicketsBot/GoPanel/botcontext"
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/database"
+	"net/http"
+	"regexp"
+	"strconv"
+	"time"
+
+	"github.com/TicketsBot-cloud/dashboard/app"
+	"github.com/TicketsBot-cloud/dashboard/botcontext"
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/TicketsBot-cloud/database"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/channel/embed"
 	"github.com/rxdn/gdl/objects/user"
 	"github.com/rxdn/gdl/rest"
-	"net/http"
-	"regexp"
-	"strconv"
-	"time"
 )
 
 var MentionRegex, _ = regexp.Compile("<@(\\d+)>")

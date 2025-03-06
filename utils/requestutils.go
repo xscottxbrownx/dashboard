@@ -3,7 +3,7 @@ package utils
 import (
 	"fmt"
 
-	"github.com/TicketsBot/GoPanel/log"
+	"github.com/TicketsBot-cloud/dashboard/log"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )

@@ -4,16 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/app"
-	"github.com/TicketsBot/GoPanel/botcontext"
-	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/redis"
-	"github.com/TicketsBot/GoPanel/utils"
+	"net/http"
+	"time"
+
+	"github.com/TicketsBot-cloud/dashboard/app"
+	"github.com/TicketsBot-cloud/dashboard/botcontext"
+	"github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/redis"
+	"github.com/TicketsBot-cloud/dashboard/utils"
 	"github.com/TicketsBot/worker/bot/command/manager"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
-	"net/http"
-	"time"
 )
 
 // TODO: Refactor

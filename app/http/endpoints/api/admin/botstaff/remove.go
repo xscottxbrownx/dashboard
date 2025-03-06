@@ -1,10 +1,11 @@
 package botstaff
 
 import (
-	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/gin-gonic/gin"
 	"strconv"
+
+	"github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/gin-gonic/gin"
 )
 
 func RemoveBotStaffHandler(ctx *gin.Context) {

@@ -1,13 +1,14 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/app"
-	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/rpc/cache"
-	"github.com/gin-gonic/gin"
-	"github.com/rxdn/gdl/objects/user"
 	"net/http"
 	"time"
+
+	"github.com/TicketsBot-cloud/dashboard/app"
+	"github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/rpc/cache"
+	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/objects/user"
 )
 
 type (

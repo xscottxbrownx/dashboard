@@ -1,11 +1,12 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/app"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/TicketsBot-cloud/dashboard/app"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/gin-gonic/gin"
 )
 
 func GetPermissionLevel(c *gin.Context) {

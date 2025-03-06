@@ -1,10 +1,11 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/go-playground/validator/v10"
 	"net/url"
 	"regexp"
+
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/go-playground/validator/v10"
 )
 
 var placeholderRegex = regexp.MustCompile(`%[\w|-]+%`)

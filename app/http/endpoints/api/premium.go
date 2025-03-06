@@ -1,12 +1,13 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/botcontext"
-	"github.com/TicketsBot/GoPanel/rpc"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/common/premium"
-	"github.com/gin-gonic/gin"
 	"strconv"
+
+	"github.com/TicketsBot-cloud/common/premium"
+	"github.com/TicketsBot-cloud/dashboard/botcontext"
+	"github.com/TicketsBot-cloud/dashboard/rpc"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/gin-gonic/gin"
 )
 
 func PremiumHandler(ctx *gin.Context) {

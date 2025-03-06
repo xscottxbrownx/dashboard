@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/TicketsBot/common/collections"
+	"github.com/TicketsBot-cloud/common/collections"
 	"github.com/rxdn/gdl/objects/channel/message"
 	"github.com/rxdn/gdl/objects/guild"
 )

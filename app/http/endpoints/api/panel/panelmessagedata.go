@@ -1,9 +1,9 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/app"
-	"github.com/TicketsBot/GoPanel/botcontext"
-	"github.com/TicketsBot/database"
+	"github.com/TicketsBot-cloud/dashboard/app"
+	"github.com/TicketsBot-cloud/dashboard/botcontext"
+	"github.com/TicketsBot-cloud/database"
 	"github.com/rxdn/gdl/objects"
 	"github.com/rxdn/gdl/objects/channel/embed"
 	"github.com/rxdn/gdl/objects/guild/emoji"

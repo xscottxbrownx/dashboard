@@ -1,14 +1,15 @@
 package api
 
 import (
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/GoPanel/utils/types"
-	"github.com/TicketsBot/common/model"
-	"github.com/TicketsBot/common/permission"
-	"github.com/TicketsBot/common/premium"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/TicketsBot-cloud/common/model"
+	"github.com/TicketsBot-cloud/common/permission"
+	"github.com/TicketsBot-cloud/common/premium"
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/TicketsBot-cloud/dashboard/utils/types"
+	"github.com/gin-gonic/gin"
 )
 
 type setActiveGuildsBody struct {

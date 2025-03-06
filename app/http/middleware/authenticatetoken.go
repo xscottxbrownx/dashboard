@@ -2,11 +2,12 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/GoPanel/utils"
+	"strconv"
+
+	"github.com/TicketsBot-cloud/dashboard/config"
+	"github.com/TicketsBot-cloud/dashboard/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
-	"strconv"
 )
 
 func AuthenticateToken(ctx *gin.Context) {

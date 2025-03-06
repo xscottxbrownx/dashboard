@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/config"
-	"github.com/getsentry/sentry-go"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/TicketsBot-cloud/dashboard/config"
+	"github.com/getsentry/sentry-go"
 )
 
 var client = &http.Client{
