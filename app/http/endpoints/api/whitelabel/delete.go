@@ -1,12 +1,13 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/app"
-	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/redis"
-	"github.com/TicketsBot/common/whitelabeldelete"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/TicketsBot-cloud/common/whitelabeldelete"
+	"github.com/TicketsBot-cloud/dashboard/app"
+	"github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/redis"
+	"github.com/gin-gonic/gin"
 )
 
 func WhitelabelDelete(c *gin.Context) {

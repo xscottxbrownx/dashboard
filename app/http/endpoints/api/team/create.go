@@ -1,9 +1,9 @@
 package api
 
 import (
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/database"
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/TicketsBot-cloud/database"
 	"github.com/gin-gonic/gin"
 )
 

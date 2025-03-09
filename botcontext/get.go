@@ -3,10 +3,11 @@ package botcontext
 import (
 	"context"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/config"
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/redis"
-	"github.com/TicketsBot/common/restcache"
+
+	"github.com/TicketsBot-cloud/common/restcache"
+	"github.com/TicketsBot-cloud/dashboard/config"
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/redis"
 	"github.com/rxdn/gdl/rest/ratelimit"
 )
 

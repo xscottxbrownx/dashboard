@@ -2,13 +2,14 @@ package api
 
 import (
 	"context"
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/rpc/cache"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/gin-gonic/gin"
-	"github.com/rxdn/gdl/objects/user"
 	"strconv"
 	"strings"
+
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/rpc/cache"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/objects/user"
 )
 
 const pageLimit = 20

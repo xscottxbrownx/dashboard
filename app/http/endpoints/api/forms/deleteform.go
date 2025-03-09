@@ -1,12 +1,13 @@
 package forms
 
 import (
-	"github.com/TicketsBot/GoPanel/app"
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/TicketsBot-cloud/dashboard/app"
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/gin-gonic/gin"
 )
 
 func DeleteForm(c *gin.Context) {

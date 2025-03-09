@@ -1,9 +1,10 @@
 package defaults
 
 import (
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNil(t *testing.T) {

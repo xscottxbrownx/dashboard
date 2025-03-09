@@ -3,9 +3,10 @@ package botstaff
 import (
 	"context"
 	"errors"
-	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/rpc/cache"
-	"github.com/TicketsBot/GoPanel/utils"
+
+	"github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/rpc/cache"
+	"github.com/TicketsBot-cloud/dashboard/utils"
 	"github.com/gin-gonic/gin"
 	cache2 "github.com/rxdn/gdl/cache"
 	"golang.org/x/sync/errgroup"

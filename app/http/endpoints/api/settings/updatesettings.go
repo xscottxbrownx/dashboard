@@ -4,19 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/botcontext"
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/rpc"
-	"github.com/TicketsBot/GoPanel/rpc/cache"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/common/premium"
-	"github.com/TicketsBot/database"
+	"time"
+
+	"github.com/TicketsBot-cloud/common/premium"
+	"github.com/TicketsBot-cloud/dashboard/botcontext"
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/rpc"
+	"github.com/TicketsBot-cloud/dashboard/rpc/cache"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/TicketsBot-cloud/database"
 	"github.com/TicketsBot/worker/bot/customisation"
 	"github.com/TicketsBot/worker/i18n"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
 	"golang.org/x/sync/errgroup"
-	"time"
 )
 
 func UpdateSettingsHandler(ctx *gin.Context) {
@@ -135,7 +136,7 @@ func (s *Settings) Validate(ctx context.Context, guildId uint64, premiumTier pre
 		return errors.New("Invalid colour")
 	}
 
-	for colour, _ := range s.Colours {
+	for colour := range s.Colours {
 		if !utils.Exists(activeColours, colour) {
 			return errors.New("Invalid colour")
 		}

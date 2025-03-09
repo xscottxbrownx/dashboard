@@ -2,10 +2,11 @@ package api
 
 import (
 	"context"
-	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/rpc/cache"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/common/permission"
+
+	"github.com/TicketsBot-cloud/common/permission"
+	"github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/rpc/cache"
+	"github.com/TicketsBot-cloud/dashboard/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	cache2 "github.com/rxdn/gdl/cache"

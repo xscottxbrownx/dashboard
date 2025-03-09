@@ -2,8 +2,9 @@ package types
 
 import (
 	"fmt"
-	"github.com/TicketsBot/GoPanel/utils"
 	"time"
+
+	"github.com/TicketsBot-cloud/dashboard/utils"
 )
 
 type DateTimeLocal time.Time

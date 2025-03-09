@@ -1,11 +1,12 @@
 package utils
 
 import (
-	"github.com/TicketsBot/GoPanel/config"
-	"github.com/golang-jwt/jwt"
-	"github.com/google/uuid"
 	"strconv"
 	"time"
+
+	"github.com/TicketsBot-cloud/dashboard/config"
+	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 )
 
 func GenerateImageProxyToken(imageUrl string) (string, error) {

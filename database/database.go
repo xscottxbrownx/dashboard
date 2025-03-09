@@ -3,9 +3,8 @@ package database
 import (
 	"context"
 
-	database2 "github.com/TicketsBot-cloud/database"
-	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/database"
+	"github.com/TicketsBot-cloud/dashboard/config"
+	"github.com/TicketsBot-cloud/database"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgconn/stmtcache"
 	"github.com/jackc/pgx/v4"
@@ -15,7 +14,6 @@ import (
 )
 
 var Client *database.Database
-var Client2 *database2.Database
 
 func ConnectToDatabase() {
 	config, err := pgxpool.ParseConfig(config.Conf.Database.Uri)
@@ -40,5 +38,4 @@ func ConnectToDatabase() {
 	}
 
 	Client = database.NewDatabase(pool)
-	Client2 = database2.NewDatabase(pool)
 }

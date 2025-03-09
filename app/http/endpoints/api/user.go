@@ -2,10 +2,11 @@ package api
 
 import (
 	"context"
-	"github.com/TicketsBot/GoPanel/rpc/cache"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/gin-gonic/gin"
 	"strconv"
+
+	"github.com/TicketsBot-cloud/dashboard/rpc/cache"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/gin-gonic/gin"
 )
 
 func UserHandler(ctx *gin.Context) {

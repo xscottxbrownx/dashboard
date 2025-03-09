@@ -5,16 +5,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/botcontext"
-	"github.com/TicketsBot/GoPanel/config"
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/internal/api"
-	"github.com/TicketsBot/GoPanel/rpc"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/common/premium"
-	"github.com/golang-jwt/jwt"
 	"net/http"
 	"strconv"
+
+	"github.com/TicketsBot-cloud/common/premium"
+	"github.com/TicketsBot-cloud/dashboard/botcontext"
+	"github.com/TicketsBot-cloud/dashboard/config"
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/internal/api"
+	"github.com/TicketsBot-cloud/dashboard/rpc"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/golang-jwt/jwt"
 )
 
 func (c *Client) HandleEvent(event Event) error {

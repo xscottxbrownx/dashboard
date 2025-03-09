@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/botcontext"
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/database"
+	"strconv"
+
+	"github.com/TicketsBot-cloud/dashboard/botcontext"
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/TicketsBot-cloud/database"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
-	"strconv"
 )
 
 func RemoveMember(ctx *gin.Context) {

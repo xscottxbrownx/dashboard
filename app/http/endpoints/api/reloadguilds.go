@@ -3,16 +3,17 @@ package api
 import (
 	"errors"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/app/http/session"
-	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/GoPanel/redis"
-	wrapper "github.com/TicketsBot/GoPanel/redis"
-	"github.com/TicketsBot/GoPanel/utils"
+	"net/http"
+	"time"
+
+	"github.com/TicketsBot-cloud/dashboard/app/http/session"
+	"github.com/TicketsBot-cloud/dashboard/config"
+	"github.com/TicketsBot-cloud/dashboard/redis"
+	wrapper "github.com/TicketsBot-cloud/dashboard/redis"
+	"github.com/TicketsBot-cloud/dashboard/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
-	"net/http"
-	"time"
 )
 
 func ReloadGuildsHandler(c *gin.Context) {

@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot-cloud/dashboard/config"
+	"github.com/TicketsBot-cloud/dashboard/utils"
 	"github.com/gin-gonic/gin"
 )
 

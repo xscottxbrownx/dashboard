@@ -1,4 +1,4 @@
-module github.com/TicketsBot/GoPanel
+module github.com/TicketsBot-cloud/dashboard
 
 go 1.23.0
 
@@ -7,11 +7,10 @@ go 1.23.0
 require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/TicketsBot-cloud/archiverclient v0.0.0-20250206203822-d4f91573ad70
-	github.com/TicketsBot-cloud/database v0.0.0-20250227151152-3fb2e052f33c
-	github.com/TicketsBot/common v0.0.0-20241117150316-ff54c97b45c1
-	github.com/TicketsBot/database v0.0.0-20250205194156-c8239ae6eb4e
+	github.com/TicketsBot-cloud/common v0.0.0-20250208140430-b5da1dd487b3
+	github.com/TicketsBot-cloud/database v0.0.0-20250306095726-e4915520c1ab
 	github.com/TicketsBot/logarchiver v0.0.0-20241012220745-5f3ba17a5138
-	github.com/TicketsBot/worker v0.0.0-20241117155137-89dec1fd9a11
+	github.com/TicketsBot/worker v0.0.0-20250223150309-90ae2883be48
 	github.com/apex/log v1.1.2
 	github.com/caarlos0/env/v11 v11.2.2
 	github.com/getsentry/sentry-go v0.24.0
@@ -34,10 +33,10 @@ require (
 	github.com/prometheus/client_golang v1.20.5
 	github.com/rxdn/gdl v0.0.0-20241201120412-8fd61c53dd96
 	github.com/sirupsen/logrus v1.9.3
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/weppos/publicsuffix-go v0.20.0
 	go.uber.org/zap v1.24.0
-	golang.org/x/sync v0.11.0
+	golang.org/x/sync v0.12.0
 )
 
 require github.com/TicketsBot/archiverclient v0.0.0-20241012221057-16a920bfb454 // indirect
@@ -45,8 +44,9 @@ require github.com/TicketsBot/archiverclient v0.0.0-20241012221057-16a920bfb454 
 require (
 	github.com/ClickHouse/ch-go v0.52.1 // indirect
 	github.com/ClickHouse/clickhouse-go/v2 v2.10.0 // indirect
-	github.com/TicketsBot-cloud/common v0.0.0-20250208140430-b5da1dd487b3 // indirect
 	github.com/TicketsBot/analytics-client v0.0.0-20240724103359-30f5dac821e6 // indirect
+	github.com/TicketsBot/common v0.0.0-20241117150316-ff54c97b45c1 // indirect
+	github.com/TicketsBot/database v0.0.0-20250205194156-c8239ae6eb4e // indirect
 	github.com/TicketsBot/ttlcache v1.6.1-0.20200405150101-acc18e37b261 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -90,8 +90,9 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.5.6 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/juju/ratelimit v1.0.2 // indirect
-	github.com/klauspost/compress v1.17.11 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
@@ -122,14 +123,14 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.34.0 // indirect
-	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
-	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/term v0.29.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
+	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
+	golang.org/x/net v0.37.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/term v0.30.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/alexcesaro/statsd.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	nhooyr.io/websocket v1.8.4 // indirect
+	nhooyr.io/websocket v1.8.17 // indirect
 )

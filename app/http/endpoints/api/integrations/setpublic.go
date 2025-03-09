@@ -2,14 +2,15 @@ package api
 
 import (
 	"fmt"
-	"github.com/TicketsBot/GoPanel/botcontext"
-	"github.com/TicketsBot/GoPanel/config"
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
+	"strconv"
+
+	"github.com/TicketsBot-cloud/dashboard/botcontext"
+	"github.com/TicketsBot-cloud/dashboard/config"
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel/embed"
 	"github.com/rxdn/gdl/rest"
-	"strconv"
 )
 
 func SetIntegrationPublicHandler(ctx *gin.Context) {

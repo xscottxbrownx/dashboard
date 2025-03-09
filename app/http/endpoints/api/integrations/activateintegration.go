@@ -3,12 +3,13 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"strings"
+
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/gin-gonic/gin"
 )
 
 type activateIntegrationBody struct {

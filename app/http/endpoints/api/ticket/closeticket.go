@@ -2,14 +2,15 @@ package api
 
 import (
 	"context"
-	"github.com/TicketsBot/GoPanel/app"
-	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/redis"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/common/closerelay"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/TicketsBot-cloud/common/closerelay"
+	"github.com/TicketsBot-cloud/dashboard/app"
+	"github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/redis"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/gin-gonic/gin"
 )
 
 type closeBody struct {

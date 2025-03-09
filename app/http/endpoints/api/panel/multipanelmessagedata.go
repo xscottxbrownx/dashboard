@@ -4,9 +4,9 @@ import (
 	"context"
 	"math"
 
-	"github.com/TicketsBot/GoPanel/botcontext"
-	"github.com/TicketsBot/GoPanel/utils/types"
-	"github.com/TicketsBot/database"
+	"github.com/TicketsBot-cloud/dashboard/botcontext"
+	"github.com/TicketsBot-cloud/dashboard/utils/types"
+	"github.com/TicketsBot-cloud/database"
 	"github.com/rxdn/gdl/objects/channel/embed"
 	"github.com/rxdn/gdl/objects/interaction/component"
 	"github.com/rxdn/gdl/rest"

@@ -2,8 +2,9 @@ package api
 
 import (
 	"context"
-	"github.com/TicketsBot/GoPanel/botcontext"
-	"github.com/TicketsBot/GoPanel/utils"
+
+	"github.com/TicketsBot-cloud/dashboard/botcontext"
+	"github.com/TicketsBot-cloud/dashboard/utils"
 	"github.com/gin-gonic/gin"
 )
 

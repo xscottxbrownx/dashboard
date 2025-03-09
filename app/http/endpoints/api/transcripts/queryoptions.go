@@ -3,8 +3,9 @@ package api
 import (
 	"context"
 	"errors"
-	"github.com/TicketsBot/GoPanel/botcontext"
-	"github.com/TicketsBot/database"
+
+	"github.com/TicketsBot-cloud/dashboard/botcontext"
+	"github.com/TicketsBot-cloud/database"
 	"github.com/rxdn/gdl/utils"
 )
 

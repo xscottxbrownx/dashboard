@@ -1,10 +1,11 @@
 package middleware
 
 import (
-	"github.com/TicketsBot/GoPanel/config"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
+
+	"github.com/TicketsBot-cloud/dashboard/config"
+	"github.com/gin-gonic/gin"
 )
 
 func Cors(config config.Config) func(*gin.Context) {

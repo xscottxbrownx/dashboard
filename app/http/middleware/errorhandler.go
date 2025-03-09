@@ -3,7 +3,8 @@ package middleware
 import (
 	"bytes"
 	"errors"
-	"github.com/TicketsBot/GoPanel/app"
+
+	"github.com/TicketsBot-cloud/dashboard/app"
 	"github.com/gin-gonic/gin"
 )
 

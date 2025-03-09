@@ -3,20 +3,21 @@ package api
 import (
 	"context"
 	"errors"
-	"github.com/TicketsBot/GoPanel/app"
-	"github.com/TicketsBot/GoPanel/botcontext"
-	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/rpc"
-	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/common/premium"
-	"github.com/TicketsBot/database"
+	"net/http"
+	"strconv"
+
+	"github.com/TicketsBot-cloud/common/premium"
+	"github.com/TicketsBot-cloud/dashboard/app"
+	"github.com/TicketsBot-cloud/dashboard/botcontext"
+	dbclient "github.com/TicketsBot-cloud/dashboard/database"
+	"github.com/TicketsBot-cloud/dashboard/rpc"
+	"github.com/TicketsBot-cloud/dashboard/utils"
+	"github.com/TicketsBot-cloud/database"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
-	"net/http"
-	"strconv"
 )
 
 func MultiPanelUpdate(c *gin.Context) {
