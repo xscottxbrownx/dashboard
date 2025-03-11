@@ -4,7 +4,7 @@
         <div slot="body" class="body-wrapper">
             <div class="section">
                 <h3 class="section-title">Import Items</h3>
-
+                <p>There are currently <strong>{queuePositions.data}</strong> data run{queuePositions.data == 1 ? "" : "s"} in the queue and <strong>{queuePositions.transcripts}</strong> transcript run{queuePositions.transcripts == 1 ? "" : "s"}</p>
                 <form>
                     <div class="row">
                         <div class="col-4">
@@ -127,11 +127,25 @@
 
     let runs = [];
 
+    let queuePositions = {
+        data: 0,
+        transcripts: 0,
+    };
+
     const dispatch = createEventDispatcher();
 
     function dispatchClose() {
         dispatch("close", {});
     }
+
+    axios.get(`${API_URL}/api/${guildId}/import/queue`).then((res) => {
+        if (res.status !== 200) {
+            notifyError(`Failed to get import queue: ${res.data.error}`);
+            return;
+        }
+
+        queuePositions = res.data;
+    });
 
     function getRuns() {
         axios.get(`${API_URL}/api/${guildId}/import/runs`).then((res) => {
