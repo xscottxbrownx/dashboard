@@ -171,7 +171,7 @@ var urlRegex = regexp.MustCompile(`^https?://([-a-zA-Z0-9@:%._+~#=]{1,256})\.[a-
 
 func validateNullableUrl(url *string) validation.ValidationFunc {
 	return func() error {
-		if url != nil && (len(*url) > 255 || url !== "%avatar_url%" || !urlRegex.MatchString(*url)) {
+		if url != nil && (len(*url) > 255 || *url != "%avatar_url%" || !urlRegex.MatchString(*url)) {
 			return validation.NewInvalidInputError("Invalid URL")
 		}
 
@@ -360,15 +360,11 @@ func validateAccessControlList(ctx PanelValidationContext) validation.Validation
 func validateEmbed(e *types.CustomEmbed) error {
 	if e == nil || e.Title != nil || e.Description != nil || len(e.Fields) > 0 || e.ImageUrl != nil || e.ThumbnailUrl != nil {
 		if e.ImageUrl != nil && (len(*e.ImageUrl) > 255 || !urlRegex.MatchString(*e.ImageUrl)) {
-			if *e.ImageUrl != "%avatar_url%" {
-				return validation.NewInvalidInputError("Invalid URL")
-			}
+			return validation.NewInvalidInputError("Invalid URL")
 		}
 
 		if e.ThumbnailUrl != nil && (len(*e.ThumbnailUrl) > 255 || !urlRegex.MatchString(*e.ThumbnailUrl)) {
-			if *e.ThumbnailUrl != "%avatar_url%" {
-				return validation.NewInvalidInputError("Invalid URL")
-			}
+			return validation.NewInvalidInputError("Invalid URL")
 		}
 
 		return nil
