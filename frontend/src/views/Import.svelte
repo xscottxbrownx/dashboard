@@ -4,7 +4,6 @@
         <div slot="body" class="body-wrapper">
             <div class="section">
                 <h3 class="section-title">Import Items</h3>
-                <p>There are currently <strong>{queuePositions.data}</strong> data run{queuePositions.data == 1 ? "" : "s"} in the queue and <strong>{queuePositions.transcripts}</strong> transcript run{queuePositions.transcripts == 1 ? "" : "s"}</p>
                 <form>
                     <div class="row">
                         <div class="col-4">
@@ -216,7 +215,7 @@
                 }
 
                 dataReturned = true;
-                notifySuccess("Transcripts uploaded successfully - They have now been placed in a queue and will be processed over the next few days.");
+                notifySuccess(`Transcripts uploaded successfully - There are currently ${queuePositions.transcripts} import${queuePositions.transcripts == 1 ? "" : "s"} ahead of you in the transcript queue. These can take a while to process, please check back later`);
             }).catch((e) => {
                 notifyError(`Failed to upload transcripts: ${e}`);
                 queryLoading = false;
@@ -245,7 +244,7 @@
                 }
 
                 dataReturned = true;
-                notifySuccess("Data uploaded successfully - It has now been placed in a queue and will be processed over the next few days.");
+                notifySuccess(`Data uploaded successfully - There are currently ${queuePositions.data} import${queuePositions.data == 1 ? "" : "s"} ahead of you in the data queue. These can take a while to process, please check back later`);
             }).catch((e) => {
                 notifyError(`Failed to upload data: ${e}`);
                 queryLoading = false;
