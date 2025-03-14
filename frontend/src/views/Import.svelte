@@ -57,7 +57,7 @@
                 {#each ["DATA", "TRANSCRIPT"] as runType}
                     {#if runs.filter(run => run.run_type == runType).length > 0}
                         <h3>{runType.toLowerCase().replace(/\b\w/g, s => s.toUpperCase())} Logs</h3>
-                        {#each runs.filter(run => run.run_type == runType) as run}
+                        {#each runs.filter(run => run.run_type == runType).sort((a, b) => new Date(a.date) - new Date(b.date)) as run}
                         <Collapsible tooltip="View your logs for this run">
                             <span slot="header" class="header">{run.run_type} Run #{run.run_id} - {new Date(run.date).toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric", hour: "2-digit", minute: "2-digit"})}</span>
                             <div slot="content" class="col-1">
