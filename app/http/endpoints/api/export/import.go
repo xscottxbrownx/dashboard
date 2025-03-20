@@ -122,7 +122,7 @@ func PresignURL(ctx *gin.Context) {
 		return
 	}
 
-	if guild.OwnerId != userId && botCtx.IsBotAdmin(ctx, userId) {
+	if guild.OwnerId != userId && !botCtx.IsBotAdmin(ctx, userId) {
 		ctx.JSON(403, utils.ErrorStr("Only the server owner can import %s", file_type))
 		return
 	}
