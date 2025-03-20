@@ -4,7 +4,6 @@
         <div slot="body" class="body-wrapper">
             <div class="section">
                 <h3 class="section-title">Import Items</h3>
-                <p>There are currently <strong>{queuePositions.data}</strong> data run{queuePositions.data == 1 ? "" : "s"} in the queue and <strong>{queuePositions.transcripts}</strong> transcript run{queuePositions.transcripts == 1 ? "" : "s"}</p>
                 <form>
                     <div class="row">
                         <div class="col-4">
@@ -58,7 +57,7 @@
                 {#each ["DATA", "TRANSCRIPT"] as runType}
                     {#if runs.filter(run => run.run_type == runType).length > 0}
                         <h3>{runType.toLowerCase().replace(/\b\w/g, s => s.toUpperCase())} Logs</h3>
-                        {#each runs.filter(run => run.run_type == runType) as run}
+                        {#each runs.filter(run => run.run_type == runType).sort((a, b) => new Date(a.date) - new Date(b.date)) as run}
                         <Collapsible tooltip="View your logs for this run">
                             <span slot="header" class="header">{run.run_type} Run #{run.run_id} - {new Date(run.date).toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric", hour: "2-digit", minute: "2-digit"})}</span>
                             <div slot="content" class="col-1">
@@ -216,7 +215,7 @@
                 }
 
                 dataReturned = true;
-                notifySuccess("Transcripts uploaded successfully - They have now been placed in a queue and will be processed over the next few days.");
+                notifySuccess(`Transcripts uploaded successfully - There are currently ${queuePositions.transcripts} import${queuePositions.transcripts == 1 ? "" : "s"} ahead of you in the transcript queue. These can take a while to process, please check back later`);
             }).catch((e) => {
                 notifyError(`Failed to upload transcripts: ${e}`);
                 queryLoading = false;
@@ -245,7 +244,7 @@
                 }
 
                 dataReturned = true;
-                notifySuccess("Data uploaded successfully - It has now been placed in a queue and will be processed over the next few days.");
+                notifySuccess(`Data uploaded successfully - There are currently ${queuePositions.data} import${queuePositions.data == 1 ? "" : "s"} ahead of you in the data queue. These can take a while to process, please check back later`);
             }).catch((e) => {
                 notifyError(`Failed to upload data: ${e}`);
                 queryLoading = false;

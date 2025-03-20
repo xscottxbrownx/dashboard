@@ -360,15 +360,21 @@ func validateAccessControlList(ctx PanelValidationContext) validation.Validation
 func validateEmbed(e *types.CustomEmbed) error {
 	if e == nil || e.Title != nil || e.Description != nil || len(e.Fields) > 0 || e.ImageUrl != nil || e.ThumbnailUrl != nil {
 		if e.ImageUrl != nil && (len(*e.ImageUrl) > 255 || !urlRegex.MatchString(*e.ImageUrl)) {
-			if *e.ImageUrl != "%avatar_url%" {
-				return validation.NewInvalidInputError("Invalid URL")
+			if *e.ImageUrl == "%avatar_url%" {
+				// Ignore validation as it is a placeholder
+				return nil
 			}
+
+			return validation.NewInvalidInputError("Invalid URL")
 		}
 
 		if e.ThumbnailUrl != nil && (len(*e.ThumbnailUrl) > 255 || !urlRegex.MatchString(*e.ThumbnailUrl)) {
-			if *e.ThumbnailUrl != "%avatar_url%" {
-				return validation.NewInvalidInputError("Invalid URL")
+			if *e.ThumbnailUrl == "%avatar_url%" {
+				// Ignore validation as it is a placeholder
+				return nil
 			}
+
+			return validation.NewInvalidInputError("Invalid URL")
 		}
 
 		return nil
